@@ -1,0 +1,21 @@
+name: network
+description: Shared Dio HTTP client, interceptors, and API error mapping for the Twilight platform.
+publish_to: none
+version: 0.1.0
+
+resolution: workspace
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dio: ^5.7.0
+  flutter_riverpod: ^2.6.1
+  core:
+    path: ../core
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
