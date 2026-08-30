@@ -1,0 +1,14 @@
+name: twilight_workspace
+publish_to: none
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+workspace:
+  - apps/template
+  - packages/core
+  - packages/auth
+  - packages/network
+  - packages/ui
+  - packages/analytics
+  - packages/storage

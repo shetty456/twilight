@@ -1,0 +1,35 @@
+name: twilight
+sdkPath: .fvm/flutter_sdk
+
+packages:
+  - apps/**
+  - packages/**
+
+command:
+  bootstrap:
+    usePubspecOverrides: false
+
+scripts:
+  analyze:
+    run: fvm flutter analyze
+    description: Run static analysis across all packages
+
+  format:
+    run: fvm dart format . --set-exit-if-changed
+    description: Format all Dart code (exits non-zero if changes are needed)
+
+  format:fix:
+    run: fvm dart format .
+    description: Format all Dart code in-place
+
+  test:
+    run: fvm flutter test
+    description: Run all tests
+
+  clean:
+    run: fvm flutter clean
+    description: Clean build artifacts in all packages
+
+  gen:
+    run: fvm dart run build_runner build --delete-conflicting-outputs
+    description: Run code generation (Freezed, json_serializable)
