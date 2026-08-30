@@ -107,29 +107,27 @@ fvm flutter build ipa --release
 
 ## Common Workspace Commands
 
-All of these run from the **repo root**.
+Run from the **repo root**. Use `make help` to see all available commands.
 
 ```bash
-# Static analysis
-fvm flutter analyze
-
-# Format code in-place
-fvm dart format .
-
-# Run all tests
-fvm flutter test
-
-# Clean all build artifacts
-fvm flutter clean
+make setup          # Install Flutter SDK + resolve dependencies (first time)
+make get            # Resolve dependencies
+make analyze        # Static analysis
+make format         # Format all Dart code
+make test           # Run all tests
+make clean          # Clean build artifacts
+make run-template   # Run the template app
+make build-apk      # Release APK (template app)
+make build-aab      # Release AAB / Play Store bundle (template app)
+make build-ipa      # iOS release archive (template app)
 ```
 
-With Melos on PATH (`~/.pub-cache/bin`):
+Or run the underlying commands directly:
 
 ```bash
-melos run analyze
-melos run format:fix
-melos run test
-melos run clean
+fvm flutter analyze
+fvm dart format .
+fvm flutter test
 ```
 
 ---

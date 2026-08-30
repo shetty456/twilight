@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import 'package:dio/dio.dart';
 
 import 'api_config.dart';
@@ -19,7 +20,8 @@ class DioClient {
     }
 
     if (config.environment.isDevelopment) {
-      _dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
+      _dio.interceptors
+          .add(LogInterceptor(requestBody: true, responseBody: true));
     }
   }
 

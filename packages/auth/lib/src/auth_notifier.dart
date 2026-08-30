@@ -44,7 +44,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 }
 
 final authRepositoryProvider = Provider<AuthRepository>(
-  (_) => throw UnimplementedError('Override authRepositoryProvider in your app'),
+  (_) =>
+      throw UnimplementedError('Override authRepositoryProvider in your app'),
 );
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {

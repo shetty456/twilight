@@ -25,7 +25,9 @@ class AppLogger {
     dev.log('[WARN] $message', name: tag ?? 'Twilight', error: error);
   }
 
-  static void severe(String message, {String? tag, Object? error, StackTrace? stackTrace}) {
-    dev.log('[ERROR] $message', name: tag ?? 'Twilight', error: error, stackTrace: stackTrace);
+  static void severe(String message,
+      {String? tag, Object? error, StackTrace? stackTrace}) {
+    dev.log('[ERROR] $message',
+        name: tag ?? 'Twilight', error: error, stackTrace: stackTrace);
   }
 }
