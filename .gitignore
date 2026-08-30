@@ -33,9 +33,12 @@ build/
 **/macos/Pods/
 **/macos/Flutter/GeneratedPluginRegistrant.swift
 
-# Web
-**/web/
+# Web build artifacts only — do not ignore the web/ platform directory itself
 lib/generated_plugin_registrant.dart
+
+# Flutter generated files — do not commit
+.flutter-plugins
+.flutter-plugins-dependencies
 
 # IDE
 .idea/
