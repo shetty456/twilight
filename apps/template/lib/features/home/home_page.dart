@@ -24,7 +24,8 @@ class HomePage extends ConsumerWidget {
             const SizedBox(height: AppSpacing.md),
             Text(
               switch (authState) {
-                AuthAuthenticated(:final user) => 'Logged in as ${user.displayName ?? user.email ?? user.id}',
+                AuthAuthenticated(:final user) =>
+                  'Logged in as ${user.displayName ?? user.email ?? user.id}',
                 AuthAuthenticating() => 'Authenticating…',
                 AuthUnauthenticated() => 'Not logged in',
                 AuthError(:final message) => 'Auth error: $message',
