@@ -2,50 +2,78 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 import 'app_text_styles.dart';
+import 'app_spacing.dart';
+
+/// Brand choices supplied by each app while sharing the same component theme.
+class AppThemeConfig {
+  const AppThemeConfig({
+    this.primaryColor = AppColors.primary,
+    this.fontFamily,
+  });
+
+  final Color primaryColor;
+  final String? fontFamily;
+}
 
 abstract final class AppTheme {
-  static ThemeData light({Color? primaryColor}) {
-    final primary = primaryColor ?? AppColors.primary;
+  static ThemeData light(
+          {Color? primaryColor,
+          AppThemeConfig config = const AppThemeConfig()}) =>
+      _build(Brightness.light, config, primaryColor);
+
+  static ThemeData dark(
+          {Color? primaryColor,
+          AppThemeConfig config = const AppThemeConfig()}) =>
+      _build(Brightness.dark, config, primaryColor);
+
+  static ThemeData _build(
+    Brightness brightness,
+    AppThemeConfig config,
+    Color? primaryColor,
+  ) {
+    final scheme = ColorScheme.fromSeed(
+      seedColor: primaryColor ?? config.primaryColor,
+      brightness: brightness,
+    );
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primary,
-        brightness: Brightness.light,
-      ),
-      scaffoldBackgroundColor: AppColors.white,
-      textTheme: const TextTheme(
-        displayLarge: AppTextStyles.headline1,
-        displayMedium: AppTextStyles.headline2,
-        titleLarge: AppTextStyles.title,
-        bodyLarge: AppTextStyles.body,
-        bodyMedium: AppTextStyles.bodySmall,
-        labelSmall: AppTextStyles.caption,
-        labelLarge: AppTextStyles.button,
+      colorScheme: scheme,
+      fontFamily: config.fontFamily,
+      scaffoldBackgroundColor: scheme.surface,
+      textTheme: TextTheme(
+        displayLarge: AppTextStyles.headline1.copyWith(color: scheme.onSurface),
+        displayMedium:
+            AppTextStyles.headline2.copyWith(color: scheme.onSurface),
+        titleLarge: AppTextStyles.title.copyWith(color: scheme.onSurface),
+        bodyLarge: AppTextStyles.body.copyWith(color: scheme.onSurface),
+        bodyMedium:
+            AppTextStyles.bodySmall.copyWith(color: scheme.onSurfaceVariant),
+        labelSmall:
+            AppTextStyles.caption.copyWith(color: scheme.onSurfaceVariant),
+        labelLarge: AppTextStyles.button.copyWith(color: scheme.onPrimary),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.black,
+        backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
         elevation: 0,
-        surfaceTintColor: AppColors.white,
-        titleTextStyle: AppTextStyles.title.copyWith(color: AppColors.black),
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: AppTextStyles.title.copyWith(color: scheme.onSurface),
       ),
       inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
-    );
-  }
-
-  static ThemeData dark({Color? primaryColor}) {
-    final primary = primaryColor ?? AppColors.primary;
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primary,
-        brightness: Brightness.dark,
+      cardTheme: CardTheme(
+        color: scheme.surface,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          side: BorderSide(color: scheme.outlineVariant),
+        ),
       ),
-      scaffoldBackgroundColor: AppColors.grey800,
     );
   }
 }
