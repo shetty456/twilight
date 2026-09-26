@@ -11,6 +11,7 @@ workspace:
   - packages/network
   - packages/ui
   - packages/analytics
+  - packages/ads
   - packages/storage
 
 flutter:

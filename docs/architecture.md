@@ -26,6 +26,7 @@ twilight/
 | `network` | Dio client, interceptors, error mapping |
 | `ui` | Theme, colors, spacing, shared widgets |
 | `analytics` | Analytics interface + no-op default |
+| `ads` | Opt-in AdMob, consent, and ad lifecycle |
 | `storage` | Key-value storage abstraction |
 
 ## Products (apps)

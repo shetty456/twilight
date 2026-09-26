@@ -44,11 +44,15 @@ fvm flutter devices
 
 # Run the template app on a specific device
 cd apps/template
-fvm flutter run -d <device-id>
+fvm flutter run -d <device-id> \
+  --dart-define=APP_ENV=development \
+  --dart-define=API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/
 
 # Or let Flutter pick the only connected device
 cd apps/template
-fvm flutter run
+fvm flutter run \
+  --dart-define=APP_ENV=development \
+  --dart-define=API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/
 ```
 
 > For iOS you need Xcode installed and a valid Apple developer account configured.
@@ -77,10 +81,14 @@ fvm flutter pub get
 cd apps/template
 
 # Debug APK
-fvm flutter build apk --debug
+fvm flutter build apk --debug \
+  --dart-define=APP_ENV=development \
+  --dart-define=API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/
 
 # Release APK (requires signing config — see docs/flavors.md)
-fvm flutter build apk --release
+fvm flutter build apk --release \
+  --dart-define=APP_ENV=production \
+  --dart-define=API_BASE_URL=https://<production-host>/api/v1/
 ```
 
 Output: `build/app/outputs/flutter-apk/app-release.apk`
@@ -89,7 +97,9 @@ Output: `build/app/outputs/flutter-apk/app-release.apk`
 
 ```bash
 cd apps/template
-fvm flutter build appbundle --release
+fvm flutter build appbundle --release \
+  --dart-define=APP_ENV=production \
+  --dart-define=API_BASE_URL=https://<production-host>/api/v1/
 ```
 
 Output: `build/app/outputs/bundle/release/app-release.aab`
@@ -98,7 +108,9 @@ Output: `build/app/outputs/bundle/release/app-release.aab`
 
 ```bash
 cd apps/template
-fvm flutter build ipa --release
+fvm flutter build ipa --release \
+  --dart-define=APP_ENV=production \
+  --dart-define=API_BASE_URL=https://<production-host>/api/v1/
 ```
 
 > Requires Xcode, a provisioning profile, and an Apple distribution certificate.
@@ -116,10 +128,10 @@ make analyze        # Static analysis
 make format         # Format all Dart code
 make test           # Run all tests
 make clean          # Clean build artifacts
-make run-template   # Run the template app
-make build-apk      # Release APK (template app)
-make build-aab      # Release AAB / Play Store bundle (template app)
-make build-ipa      # iOS release archive (template app)
+make run-template API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/
+make build-apk API_BASE_URL=https://<production-host>/api/v1/
+make build-aab API_BASE_URL=https://<production-host>/api/v1/
+make build-ipa API_BASE_URL=https://<production-host>/api/v1/
 ```
 
 Or run the underlying commands directly:
@@ -159,6 +171,7 @@ twilight/
 │   ├── network/           # Dio client, interceptors, error mapping
 │   ├── ui/                # Theme, shared widgets, design primitives
 │   ├── analytics/         # Analytics interface (no-op default)
+│   ├── ads/               # Opt-in AdMob integration and consent flow
 │   └── storage/           # Key-value storage abstraction
 ├── docs/                  # Architecture and workflow documentation
 ├── .fvmrc                 # Pinned Flutter version
@@ -179,6 +192,7 @@ twilight/
 | [Authentication](docs/authentication.md) | AuthRepository pattern |
 | [Networking](docs/networking.md) | DioClient, product API services |
 | [Analytics](docs/analytics.md) | Shared mechanism, product-owned events |
+| [AdMob](docs/ads.md) | Opt-in package and app setup for ads |
 | [Flavors](docs/flavors.md) | App vs flavor, environment setup |
 
 ---

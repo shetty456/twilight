@@ -76,19 +76,19 @@ fvm flutter pub get
 
 Copy `apps/template/lib/` as a starting point, then:
 
-1. Update `config/env_config.dart` with your real API base URLs
+1. Keep the template's build-time API configuration and provide `APP_ENV` and `API_BASE_URL` when running or building; see [networking.md](networking.md)
 2. Update `config/product_config.dart` with your app name and bundle ID
 3. Remove the template `features/home/` and add your own features
 4. Update `main.dart` if you need additional provider overrides
 
 ## 6. Update Android bundle ID
 
-In `apps/<your-product>/android/app/build.gradle`:
+In `apps/<your-product>/android/app/build.gradle.kts`:
 
-```groovy
+```kotlin
 android {
     defaultConfig {
-        applicationId "com.yourcompany.yourproduct"
+        applicationId = "com.yourcompany.yourproduct"
         // ...
     }
 }
@@ -102,8 +102,14 @@ Open `apps/<your-product>/ios/Runner.xcodeproj` in Xcode and set the bundle iden
 
 ```bash
 cd apps/<your-product>
-fvm flutter run
+fvm flutter run \
+  --dart-define=APP_ENV=development \
+  --dart-define=API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/
 ```
+
+## Optional: add AdMob
+
+Follow [ads.md](ads.md) when a product needs ads. Add `packages/ads` as a dependency only in that app, then supply its Android/iOS AdMob app IDs and ad unit IDs.
 
 ## Feature conventions
 
