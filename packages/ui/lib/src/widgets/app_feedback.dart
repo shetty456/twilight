@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_spacing.dart';
+import 'app_bottom_sheet.dart';
 
 enum AppMessageKind { info, success, warning, error }
 
@@ -77,40 +78,54 @@ abstract final class AppConfirmationSheet {
     required String confirmLabel,
     String cancelLabel = 'Cancel',
     bool destructive = false,
+    IconData? icon,
+    String? warningMessage,
+    Widget? additionalContent,
+    bool isDismissible = true,
   }) async {
-    return await showModalBottomSheet<bool>(
-          context: context,
-          isScrollControlled: true,
+    return await AppBottomSheet.show<bool>(
+          context,
+          isDismissible: isDismissible,
+          enableDrag: isDismissible,
           builder: (sheetContext) {
             final scheme = Theme.of(sheetContext).colorScheme;
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(title,
-                        style: Theme.of(sheetContext).textTheme.titleLarge),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(message),
-                    const SizedBox(height: AppSpacing.lg),
-                    FilledButton(
-                      style: destructive
-                          ? FilledButton.styleFrom(
-                              backgroundColor: scheme.error,
-                              foregroundColor: scheme.onError)
-                          : null,
-                      onPressed: () => Navigator.pop(sheetContext, true),
-                      child: Text(confirmLabel),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(sheetContext, false),
-                      child: Text(cancelLabel),
-                    ),
-                  ],
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (icon != null) ...[
+                  Icon(icon,
+                      size: 48,
+                      color: destructive ? scheme.error : scheme.primary),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                Text(title, style: Theme.of(sheetContext).textTheme.titleLarge),
+                const SizedBox(height: AppSpacing.sm),
+                Text(message),
+                if (warningMessage != null) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  AppMessageBox(
+                      message: warningMessage, kind: AppMessageKind.warning),
+                ],
+                if (additionalContent != null) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  additionalContent,
+                ],
+                const SizedBox(height: AppSpacing.lg),
+                FilledButton(
+                  style: destructive
+                      ? FilledButton.styleFrom(
+                          backgroundColor: scheme.error,
+                          foregroundColor: scheme.onError)
+                      : null,
+                  onPressed: () => Navigator.pop(sheetContext, true),
+                  child: Text(confirmLabel),
                 ),
-              ),
+                TextButton(
+                  onPressed: () => Navigator.pop(sheetContext, false),
+                  child: Text(cancelLabel),
+                ),
+              ],
             );
           },
         ) ??

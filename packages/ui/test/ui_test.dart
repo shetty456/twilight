@@ -45,11 +45,41 @@ void main() {
     ));
 
     expect(
-      tester.widget<Skeletonizer>(
-        find.byWidgetPredicate((widget) => widget is Skeletonizer),
-      ).enabled,
+      tester
+          .widget<Skeletonizer>(
+            find.byWidgetPredicate((widget) => widget is Skeletonizer),
+          )
+          .enabled,
       isTrue,
     );
+  });
+
+  testWidgets('confirmation sheet returns the selected action', (tester) async {
+    bool? result;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Builder(
+            builder: (context) => TextButton(
+                  onPressed: () async {
+                    result = await AppConfirmationSheet.show(
+                      context,
+                      title: 'Remove item?',
+                      message: 'This cannot be undone.',
+                      confirmLabel: 'Remove',
+                      destructive: true,
+                      warningMessage: 'Check before removing.',
+                    );
+                  },
+                  child: const Text('Open'),
+                )),
+      ),
+    ));
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    expect(find.text('Check before removing.'), findsOneWidget);
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+    expect(result, isTrue);
   });
 }
 
