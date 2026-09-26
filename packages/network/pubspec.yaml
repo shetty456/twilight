@@ -12,6 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   dio: ^5.7.0
+  connectivity_plus: 6.1.5
   flutter_riverpod: ^2.6.1
   core:
     path: ../core
