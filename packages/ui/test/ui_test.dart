@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ui/ui.dart';
@@ -80,6 +82,34 @@ void main() {
     await tester.tap(find.text('Remove'));
     await tester.pumpAndSettle();
     expect(result, isTrue);
+  });
+
+  testWidgets('AsyncAppButton blocks duplicate actions while busy',
+      (tester) async {
+    final completer = Completer<void>();
+    var calls = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: AsyncAppButton(
+          label: 'Save',
+          onPressed: () {
+            calls++;
+            return completer.future;
+          },
+        ),
+      ),
+    ));
+
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    expect(calls, 1);
+    final button = find.byWidgetPredicate((widget) => widget is FilledButton);
+    expect(tester.widget<FilledButton>(button).onPressed,
+        isNull);
+    completer.complete();
+    await tester.pump();
+    expect(tester.widget<FilledButton>(button).onPressed,
+        isNotNull);
   });
 }
 

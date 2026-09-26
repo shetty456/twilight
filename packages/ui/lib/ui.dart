@@ -10,4 +10,6 @@ export 'src/widgets/app_states.dart';
 export 'src/widgets/app_feedback.dart';
 export 'src/widgets/app_skeleton.dart';
 export 'src/widgets/app_bottom_sheet.dart';
+export 'src/widgets/app_loading.dart';
+export 'src/widgets/app_connection_widgets.dart';
 export 'src/widgets/loading_widget.dart';
