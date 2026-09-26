@@ -29,8 +29,9 @@ The existing `AppTheme.light(primaryColor: ...)` API remains available. Shared w
 | Forms | `AppTextField`, `AppTextArea`, `AppDropdown`, `AppCheckbox`, `AppRadio`, `AppSwitch` |
 | Content | `AppCard`, `AppChip`, `AppBadge`, `AppDivider` |
 | States | `LoadingWidget`, `AppEmptyState`, `AppErrorState` |
+| Loading layouts | `AppSkeleton`, `AppSkeletonList` |
 | Feedback | `AppMessageBox`, `AppMessageKind`, `AppSnackbar`, `AppConfirmationSheet` |
 
 For form validation, place `AppTextField` or `AppDropdown` inside a `Form` and pass a `validator`. Provide all user-facing copy at the call site so each app can localize it.
 
-This core set uses only the Flutter SDK. Add optional visuals such as SVG or shimmer in a separate change when an app actually needs them.
+`AppSkeleton(isLoading: true, child: yourScreen)` turns an existing layout into a shimmer skeleton. For lists, provide sample items while loading or use `AppSkeletonList`, because an empty list has no widgets to transform. The shared UI package uses `skeletonizer` for this effect.

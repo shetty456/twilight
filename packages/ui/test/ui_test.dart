@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ui/ui.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 void main() {
   test('app theme applies the same brand to light and dark schemes', () {
@@ -33,6 +34,22 @@ void main() {
     expect(find.text('Required'), findsOneWidget);
     await tester.enterText(find.byType(TextFormField), 'Ada');
     expect(key.currentState!.validate(), isTrue);
+  });
+
+  testWidgets('AppSkeleton enables automatic skeleton painting',
+      (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: AppSkeleton(isLoading: true, child: Text('Loading content')),
+      ),
+    ));
+
+    expect(
+      tester.widget<Skeletonizer>(
+        find.byWidgetPredicate((widget) => widget is Skeletonizer),
+      ).enabled,
+      isTrue,
+    );
   });
 }
 

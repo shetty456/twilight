@@ -55,7 +55,7 @@ class AppDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DropdownButtonFormField<T>(
-        value: value,
+        initialValue: value,
         items: items,
         onChanged: onChanged,
         validator: validator,
@@ -105,7 +105,10 @@ class AppRadio<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) => RadioListTile<T>(
         value: value,
+        // The shared control keeps its existing standalone API for callers.
+        // ignore: deprecated_member_use
         groupValue: groupValue,
+        // ignore: deprecated_member_use
         onChanged: onChanged,
         title: Text(label),
         contentPadding: EdgeInsets.zero,
