@@ -12,3 +12,6 @@ workspace:
   - packages/ui
   - packages/analytics
   - packages/storage
+
+flutter:
+  uses-material-design: true
