@@ -24,7 +24,7 @@ format-check: ## Check formatting without modifying files
 	$(DART) format . --set-exit-if-changed
 
 test: ## Run all tests
-	$(FLUTTER) test
+	bash scripts/test_workspace.sh
 
 clean: ## Clean all build artifacts
 	$(FLUTTER) clean

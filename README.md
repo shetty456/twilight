@@ -127,7 +127,7 @@ Or run the underlying commands directly:
 ```bash
 fvm flutter analyze
 fvm dart format .
-fvm flutter test
+bash scripts/test_workspace.sh
 ```
 
 ---

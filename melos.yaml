@@ -23,7 +23,7 @@ scripts:
     description: Format all Dart code in-place
 
   test:
-    run: fvm flutter test
+    run: bash scripts/test_workspace.sh
     description: Run all tests
 
   clean:

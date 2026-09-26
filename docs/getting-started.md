@@ -48,7 +48,7 @@ fvm flutter pub get
 fvm flutter analyze
 
 # Tests should pass
-fvm flutter test
+bash scripts/test_workspace.sh
 ```
 
 ## 5. Run the template app
