@@ -104,12 +104,18 @@ void main() {
     await tester.pump();
     expect(calls, 1);
     final button = find.byWidgetPredicate((widget) => widget is FilledButton);
-    expect(tester.widget<FilledButton>(button).onPressed,
-        isNull);
+    expect(tester.widget<FilledButton>(button).onPressed, isNull);
     completer.complete();
     await tester.pump();
-    expect(tester.widget<FilledButton>(button).onPressed,
-        isNotNull);
+    expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
+  });
+
+  testWidgets('skeleton grid renders placeholders without data',
+      (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(body: AppSkeletonGrid(itemCount: 4)),
+    ));
+    expect(find.byType(AppSkeletonCard), findsNWidgets(4));
   });
 }
 

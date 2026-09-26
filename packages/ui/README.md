@@ -29,7 +29,7 @@ The existing `AppTheme.light(primaryColor: ...)` API remains available. Shared w
 | Forms | `AppTextField`, `AppTextArea`, `AppDropdown`, `AppCheckbox`, `AppRadio`, `AppSwitch` |
 | Content | `AppCard`, `AppChip`, `AppBadge`, `AppDivider` |
 | States | `LoadingWidget`, `AppEmptyState`, `AppErrorState` |
-| Loading layouts | `AppSkeleton`, `AppSkeletonList` |
+| Loading layouts | `AppSkeleton`, `AppSkeletonList`, `AppSkeletonCard`, `AppSkeletonGrid` |
 | Feedback | `AppMessageBox`, `AppMessageKind`, `AppSnackbar`, `AppConfirmationSheet` |
 | Sheets | `AppBottomSheet`, `AppDragHandle` |
 | Operations | `AsyncAppButton`, `AppProgress`, `AppLoadingOverlay`, `AppOfflineBanner`, `AppAvatar` |
@@ -37,6 +37,7 @@ The existing `AppTheme.light(primaryColor: ...)` API remains available. Shared w
 For form validation, place `AppTextField` or `AppDropdown` inside a `Form` and pass a `validator`. Provide all user-facing copy at the call site so each app can localize it.
 
 `AppSkeleton(isLoading: true, child: yourScreen)` turns an existing layout into a shimmer skeleton. For lists, provide sample items while loading or use `AppSkeletonList`, because an empty list has no widgets to transform. The shared UI package uses `skeletonizer` for this effect.
+`AppSkeletonCard` and `AppSkeletonGrid` provide ready-made placeholders when a screen cannot render its real layout without data.
 
 Use `AppBottomSheet.show(context, builder: ...)` for app-specific sheet content. It handles keyboard insets, scrolling, height, safe area, and the drag handle. `AppConfirmationSheet.show` uses the same shell for decisions and accepts optional warning text and extra content.
 
