@@ -1,4 +1,4 @@
-enum AppEnvironment { development, staging, production }
+enum AppEnvironment { development, production }
 
 extension AppEnvironmentX on AppEnvironment {
   bool get isDevelopment => this == AppEnvironment.development;

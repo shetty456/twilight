@@ -1,40 +1,19 @@
 import 'package:core/core.dart';
+import 'package:network/network.dart';
 
-class DevConfig extends AppConfig {
-  const DevConfig();
+/// App-facing config derived from the same build settings as the API client.
+class TemplateConfig extends AppConfig {
+  const TemplateConfig(this.api);
 
-  @override
-  String get appName => 'Template (Dev)';
-
-  @override
-  String get apiBaseUrl => 'https://api-dev.example.com';
+  final ApiConfig api;
 
   @override
-  AppEnvironment get environment => AppEnvironment.development;
-}
-
-class StagingConfig extends AppConfig {
-  const StagingConfig();
+  String get appName =>
+      api.environment.isProduction ? 'Template' : 'Template (Dev)';
 
   @override
-  String get appName => 'Template (Staging)';
+  String get apiBaseUrl => api.baseUrl;
 
   @override
-  String get apiBaseUrl => 'https://api-staging.example.com';
-
-  @override
-  AppEnvironment get environment => AppEnvironment.staging;
-}
-
-class ProdConfig extends AppConfig {
-  const ProdConfig();
-
-  @override
-  String get appName => 'Template';
-
-  @override
-  String get apiBaseUrl => 'https://api.example.com';
-
-  @override
-  AppEnvironment get environment => AppEnvironment.production;
+  AppEnvironment get environment => api.environment;
 }

@@ -60,7 +60,9 @@ Connect a device or start an emulator/simulator.
 fvm flutter devices
 
 cd apps/template
-fvm flutter run
+fvm flutter run \
+  --dart-define=APP_ENV=development \
+  --dart-define=API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/
 ```
 
 ## Flutter version

@@ -16,6 +16,8 @@ dependencies:
   flutter_riverpod: ^2.6.1
   core:
     path: ../core
+  auth:
+    path: ../auth
 
 dev_dependencies:
   flutter_test:

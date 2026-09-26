@@ -1,16 +1,11 @@
-# template
+# Twilight template app
 
-A new Flutter project.
+Start Origin from `~/Desktop/origin` with `make up`, then run this app on a phone on the same Wi-Fi:
 
-## Getting Started
+```bash
+fvm flutter run \
+  --dart-define=APP_ENV=development \
+  --dart-define=API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/
+```
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Replace `<computer-lan-ip>` with the computer's LAN IP address. The template needs both build settings; production needs an HTTPS URL. See [networking](../../docs/networking.md) and [creating an app](../../docs/creating-an-app.md) for the shared backend, token flow, and product setup.

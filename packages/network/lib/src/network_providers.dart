@@ -1,3 +1,4 @@
+import 'package:auth/auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'api_config.dart';
@@ -7,7 +8,10 @@ final apiConfigProvider = Provider<ApiConfig>(
   (_) => throw UnimplementedError('Override apiConfigProvider in your app'),
 );
 
+final authTokenStoreProvider = Provider<AuthTokenStore?>((_) => null);
+
 final dioClientProvider = Provider<DioClient>((ref) {
   final config = ref.watch(apiConfigProvider);
-  return DioClient(config);
+  final tokens = ref.watch(authTokenStoreProvider);
+  return DioClient(config, tokenStore: tokens);
 });

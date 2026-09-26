@@ -24,7 +24,7 @@ void main() {
       ..httpClientAdapter = _Adapter()
       ..interceptors.add(RequestMetricsInterceptor(metrics.add));
 
-    await dio.get('/items?secret=private',
+    await dio.get<dynamic>('/items?secret=private',
         options: Options(headers: {
           'Authorization': 'Bearer private',
         }));

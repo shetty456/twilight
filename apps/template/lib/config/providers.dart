@@ -3,33 +3,33 @@ import 'package:auth/auth.dart';
 import 'package:core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:network/network.dart';
+import 'package:storage/storage.dart';
 
 import 'env_config.dart';
 import 'product_config.dart';
 import 'stub_auth_repository.dart';
 
-// Change this to StagingConfig() or ProdConfig() per build flavor
-const AppConfig _activeConfig = DevConfig();
-
-final productConfigProvider = Provider<ProductConfig>((_) {
-  return const ProductConfig(
-    appName: 'Template',
+final productConfigProvider = Provider<ProductConfig>((ref) {
+  final api = ref.watch(apiConfigProvider);
+  final appConfig = TemplateConfig(api);
+  return ProductConfig(
+    appName: appConfig.appName,
     bundleId: 'com.twilight.template',
-    appConfig: _activeConfig,
+    appConfig: appConfig,
   );
 });
 
 List<Override> buildProviderOverrides() {
+  final api = ApiConfig.fromBuildEnvironment();
   return [
     authRepositoryProvider.overrideWithValue(const StubAuthRepository()),
-    apiConfigProvider.overrideWithValue(
-      ApiConfig(
-        baseUrl: _activeConfig.apiBaseUrl,
-        environment: _activeConfig.environment,
-      ),
-    ),
+    apiConfigProvider.overrideWithValue(api),
+    authTokenStoreProvider.overrideWithValue(SecureAuthTokenStore(
+      key:
+          'twilight.auth.${api.environment.name}.${Uri.parse(api.baseUrl).authority}',
+    )),
     analyticsServiceProvider.overrideWithValue(
-      _activeConfig.environment.isDevelopment
+      api.environment.isDevelopment
           ? const DebugAnalyticsService()
           : const NoOpAnalyticsService(),
     ),
