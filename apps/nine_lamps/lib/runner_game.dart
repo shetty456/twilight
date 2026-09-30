@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 enum RunStatus { running, failed, reachedLamp, lampLit, complete }
 
@@ -42,6 +43,7 @@ class RunnerGame extends FlameGame {
   ui.Image? _devoteeRunOne;
   ui.Image? _devoteeRunTwo;
   ui.Image? _diya;
+  ui.Image? _stoneObstacle;
 
   @override
   Future<void> onLoad() async {
@@ -50,6 +52,7 @@ class RunnerGame extends FlameGame {
     _devoteeRunOne = await images.load('devotee_run_1.png');
     _devoteeRunTwo = await images.load('devotee_run_2.png');
     _diya = await images.load('diya_collectible.png');
+    _stoneObstacle = await images.load('stone_obstacle.png');
   }
 
   void start() {
@@ -124,6 +127,7 @@ class RunnerGame extends FlameGame {
         hazard.checked = true;
         if (hazard.lane == targetLane && leap < 0.18) {
           active = false;
+          HapticFeedback.mediumImpact();
           state.value = RunState(
             night: state.value.night,
             lamps: state.value.lamps,
@@ -326,24 +330,42 @@ class RunnerGame extends FlameGame {
       final p = hazard.progress.clamp(0.0, 1.0);
       final y = 305 + p * p * 500;
       final x = 195 + hazard.lane * (42 + p * 86);
-      final width = 14 + p * 44;
-      final height = 10 + p * 48;
-      final stone = Rect.fromCenter(
-        center: Offset(x, y - height / 2),
-        width: width,
-        height: height,
-      );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(stone, const Radius.circular(4)),
-        Paint()..color = const Color(0xFF211D28),
-      );
-      canvas.drawLine(
-        Offset(x - width / 2, y - height),
-        Offset(x + width / 2, y - height),
-        Paint()
-          ..color = const Color(0xFFE5A86A)
-          ..strokeWidth = 3,
-      );
+      final sprite = _stoneObstacle;
+      if (sprite != null) {
+        final height = 12 + p * 68;
+        final width = height * sprite.width / sprite.height;
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: Offset(x, y - 3),
+            width: width * 0.76,
+            height: 5 + p * 12,
+          ),
+          Paint()..color = Color.fromARGB((60 + p * 75).round(), 11, 8, 14),
+        );
+        canvas.drawImageRect(
+          sprite,
+          Rect.fromLTWH(
+            0,
+            0,
+            sprite.width.toDouble(),
+            sprite.height.toDouble(),
+          ),
+          Rect.fromLTWH(x - width / 2, y - height, width, height),
+          Paint()..filterQuality = FilterQuality.medium,
+        );
+      } else {
+        final width = 14 + p * 44;
+        final height = 10 + p * 48;
+        final stone = Rect.fromCenter(
+          center: Offset(x, y - height / 2),
+          width: width,
+          height: height,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(stone, const Radius.circular(4)),
+          Paint()..color = const Color(0xFF211D28),
+        );
+      }
     }
 
     final diya = _diya;
