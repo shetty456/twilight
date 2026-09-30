@@ -27,8 +27,11 @@ class RunState {
 
 class RunnerGame extends FlameGame {
   final ValueNotifier<RunState> state = ValueNotifier(const RunState());
+  final math.Random _random = math.Random(9);
+  final List<_Hazard> _hazards = [];
   bool active = false;
   double elapsed = 0;
+  double _spawnClock = 0;
   double lane = 0;
   int targetLane = 0;
   double leap = 0;
@@ -39,6 +42,8 @@ class RunnerGame extends FlameGame {
     elapsed = 0;
     lane = 0;
     targetLane = 0;
+    _spawnClock = 0;
+    _hazards.clear();
     state.value = const RunState();
   }
 
@@ -65,9 +70,27 @@ class RunnerGame extends FlameGame {
     if (!active) return;
     final step = math.min(dt, 0.05);
     elapsed += step;
+    _spawnClock += step;
     lane += (targetLane - lane) * math.min(1, step * 12);
     leap = math.max(0, leap - step);
     duck = math.max(0, duck - step);
+    if (_spawnClock > 1.45) {
+      _spawnClock = 0;
+      _hazards.add(_Hazard(_random.nextInt(3) - 1));
+    }
+    for (final hazard in _hazards) {
+      hazard.progress += step * 0.48;
+      if (!hazard.checked && hazard.progress >= 0.82) {
+        hazard.checked = true;
+        if (hazard.lane == targetLane && leap < 0.18) {
+          active = false;
+          state.value = RunState(score: state.value.score, status: RunStatus.failed);
+          break;
+        }
+      }
+    }
+    _hazards.removeWhere((hazard) => hazard.progress > 1.2);
+    if (!active) return;
     final score = (elapsed * 18).floor();
     if (score != state.value.score) {
       state.value = RunState(score: score);
@@ -138,6 +161,21 @@ class RunnerGame extends FlameGame {
           Paint()..color = const Color(0x886F5650)..strokeWidth = 2);
     }
 
+    for (final hazard in _hazards) {
+      final p = hazard.progress.clamp(0.0, 1.0);
+      final y = 390 + p * p * 415;
+      final x = 195 + hazard.lane * (17 + p * 82);
+      final width = 14 + p * 44;
+      final height = 10 + p * 48;
+      final stone = Rect.fromCenter(
+          center: Offset(x, y - height / 2), width: width, height: height);
+      canvas.drawRRect(
+          RRect.fromRectAndRadius(stone, const Radius.circular(4)),
+          Paint()..color = const Color(0xFF211D28));
+      canvas.drawLine(Offset(x - width / 2, y - height), Offset(x + width / 2, y - height),
+          Paint()..color = const Color(0xFFE5A86A)..strokeWidth = 3);
+    }
+
     final playerX = 195.0 + lane * 86;
     final jumpY = leap > 0 ? math.sin((0.75 - leap) / 0.75 * math.pi) * 80 : 0.0;
     canvas.drawOval(Rect.fromCenter(center: Offset(playerX, 740), width: 51, height: 15),
@@ -158,4 +196,11 @@ class RunnerGame extends FlameGame {
     canvas.drawCircle(Offset(playerX, 688 - jumpY), 23,
         Paint()..color = const Color(0xFFD47D49)..style = PaintingStyle.stroke..strokeWidth = 3);
   }
+}
+
+class _Hazard {
+  _Hazard(this.lane);
+  final int lane;
+  double progress = 0;
+  bool checked = false;
 }
