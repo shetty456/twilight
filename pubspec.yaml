@@ -5,6 +5,7 @@ environment:
   sdk: '>=3.9.0 <4.0.0'
 
 workspace:
+  - apps/nine_lamps
   - apps/template
   - packages/core
   - packages/auth
