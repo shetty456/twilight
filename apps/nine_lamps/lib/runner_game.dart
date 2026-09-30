@@ -39,11 +39,15 @@ class RunnerGame extends FlameGame {
   double leap = 0;
   double duck = 0;
   ui.Image? _nightOnePath;
+  ui.Image? _devoteeRunOne;
+  ui.Image? _devoteeRunTwo;
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
     _nightOnePath = await images.load('night_one_path.png');
+    _devoteeRunOne = await images.load('devotee_run_1.png');
+    _devoteeRunTwo = await images.load('devotee_run_2.png');
   }
 
   void start() {
@@ -334,14 +338,36 @@ class RunnerGame extends FlameGame {
     final jumpY = leap > 0
         ? math.sin((0.75 - leap) / 0.75 * math.pi) * 80
         : 0.0;
-    final stride = active ? math.sin(elapsed * 17) : 0.0;
-    final bob = leap > 0 ? 0.0 : stride.abs() * 3.0;
+    final runPhase = elapsed * math.pi * 2 * 1.55;
+    final stride = active ? math.sin(runPhase) : 0.0;
+    final bob = leap > 0 ? 0.0 : stride.abs() * 2.5;
     final bodyY = jumpY + bob;
     final crouch = duck > 0 ? 13.0 : 0.0;
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(playerX, 740), width: 51, height: 15),
-      Paint()..color = const Color(0x990B0910),
+      Rect.fromCenter(
+        center: Offset(playerX, 784),
+        width: 78 - jumpY * 0.28,
+        height: 20 - jumpY * 0.08,
+      ),
+      Paint()..color = Color.fromARGB((135 - jumpY * 0.7).round(), 8, 6, 12),
     );
+    final sprite =
+        (stride >= 0 ? _devoteeRunOne : _devoteeRunTwo) ?? _devoteeRunOne;
+    if (sprite != null) {
+      final height = duck > 0 ? 115.0 : 182.0;
+      final width = height * sprite.width / sprite.height;
+      canvas.save();
+      canvas.translate(playerX, 786 - jumpY - bob);
+      canvas.rotate((targetLane - lane) * -0.1);
+      canvas.drawImageRect(
+        sprite,
+        Rect.fromLTWH(0, 0, sprite.width.toDouble(), sprite.height.toDouble()),
+        Rect.fromLTWH(-width / 2, -height, width, height),
+        Paint()..filterQuality = FilterQuality.medium,
+      );
+      canvas.restore();
+      return;
+    }
     canvas.drawCircle(
       Offset(playerX, 688 - bodyY + crouch),
       duck > 0 ? 19 : 23,
