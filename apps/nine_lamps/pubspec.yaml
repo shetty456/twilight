@@ -28,3 +28,4 @@ flutter:
         - asset: assets/fonts/Manrope.ttf
   assets:
     - assets/images/world_concept.png
+    - assets/images/night_one_path.png
