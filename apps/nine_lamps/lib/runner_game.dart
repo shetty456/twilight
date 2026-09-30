@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-enum RunStatus { running, failed, lamp, complete }
+enum RunStatus { running, failed, reachedLamp, lampLit, complete }
 
 class RunState {
   const RunState({
@@ -41,6 +41,7 @@ class RunnerGame extends FlameGame {
   ui.Image? _nightOnePath;
   ui.Image? _devoteeRunOne;
   ui.Image? _devoteeRunTwo;
+  ui.Image? _diya;
 
   @override
   Future<void> onLoad() async {
@@ -48,6 +49,7 @@ class RunnerGame extends FlameGame {
     _nightOnePath = await images.load('night_one_path.png');
     _devoteeRunOne = await images.load('devotee_run_1.png');
     _devoteeRunTwo = await images.load('devotee_run_2.png');
+    _diya = await images.load('diya_collectible.png');
   }
 
   void start() {
@@ -75,7 +77,17 @@ class RunnerGame extends FlameGame {
   }
 
   void continueRun() {
-    if (state.value.status != RunStatus.lamp) return;
+    if (state.value.status == RunStatus.reachedLamp) {
+      final lamps = state.value.lamps + 1;
+      state.value = RunState(
+        night: state.value.night,
+        lamps: lamps,
+        score: state.value.score,
+        status: lamps == 9 ? RunStatus.complete : RunStatus.lampLit,
+      );
+      return;
+    }
+    if (state.value.status != RunStatus.lampLit) return;
     final nextNight = state.value.night + 1;
     _distanceBeforeNight = state.value.score;
     elapsed = 0;
@@ -102,7 +114,7 @@ class RunnerGame extends FlameGame {
     lane += (targetLane - lane) * math.min(1, step * 12);
     leap = math.max(0, leap - step);
     duck = math.max(0, duck - step);
-    if (_spawnClock > 1.45) {
+    if (_spawnClock > 1.45 && elapsed < 10.5) {
       _spawnClock = 0;
       _hazards.add(_Hazard(_random.nextInt(3) - 1));
     }
@@ -134,12 +146,12 @@ class RunnerGame extends FlameGame {
     }
     if (elapsed >= 15) {
       active = false;
-      final lamps = state.value.lamps + 1;
+      _hazards.clear();
       state.value = RunState(
         night: state.value.night,
-        lamps: lamps,
+        lamps: state.value.lamps,
         score: score,
-        status: lamps == 9 ? RunStatus.complete : RunStatus.lamp,
+        status: RunStatus.reachedLamp,
       );
     }
   }
@@ -331,6 +343,20 @@ class RunnerGame extends FlameGame {
         Paint()
           ..color = const Color(0xFFE5A86A)
           ..strokeWidth = 3,
+      );
+    }
+
+    final diya = _diya;
+    if (diya != null && elapsed >= 11.5) {
+      final approach = ((elapsed - 11.5) / 3.5).clamp(0.0, 1.0);
+      final height = 28 + approach * 104;
+      final width = height * diya.width / diya.height;
+      final y = 325 + approach * approach * 400;
+      canvas.drawImageRect(
+        diya,
+        Rect.fromLTWH(0, 0, diya.width.toDouble(), diya.height.toDouble()),
+        Rect.fromLTWH(195 - width / 2, y - height, width, height),
+        Paint()..filterQuality = FilterQuality.medium,
       );
     }
 

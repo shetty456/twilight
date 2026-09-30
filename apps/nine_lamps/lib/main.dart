@@ -333,6 +333,7 @@ class _EndPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final complete = status == RunStatus.complete;
     final failed = status == RunStatus.failed;
+    final reachedLamp = status == RunStatus.reachedLamp;
     return ColoredBox(
       color: const Color(0xD9100E18),
       child: Center(
@@ -341,12 +342,9 @@ class _EndPanel extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.local_fire_department_rounded,
-                size: 58,
-                color: complete
-                    ? const Color(0xFFFFD993)
-                    : const Color(0xFFFFB86C),
+              SizedBox(
+                height: 120,
+                child: Image.asset('assets/images/diya_collectible.png'),
               ),
               const SizedBox(height: 16),
               Text(
@@ -354,12 +352,15 @@ class _EndPanel extends StatelessWidget {
                     ? 'THE LIGHT IS EVERYWHERE'
                     : failed
                     ? 'THE PATH WAITS FOR YOU'
+                    : reachedLamp
+                    ? 'A LAMP AWAITS'
                     : 'A LAMP IS LIT',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Color(0xFFFFE8C8),
-                  fontSize: 24,
-                  letterSpacing: 1.5,
+                  fontFamily: 'CormorantGaramond',
+                  fontSize: 32,
+                  letterSpacing: 1,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -369,6 +370,8 @@ class _EndPanel extends StatelessWidget {
                     ? 'Nine nights carried into one dawn.'
                     : failed
                     ? 'Rise, breathe, and begin again.'
+                    : reachedLamp
+                    ? 'Pause. Receive the light of this night.'
                     : '$lamps of nine lamps gathered',
                 style: const TextStyle(color: Color(0xFFE7CCAC), fontSize: 15),
               ),
@@ -380,7 +383,13 @@ class _EndPanel extends StatelessWidget {
                   foregroundColor: const Color(0xFF21120D),
                   minimumSize: const Size(220, 52),
                 ),
-                child: Text(complete || failed ? 'BEGIN AGAIN' : 'CONTINUE'),
+                child: Text(
+                  complete || failed
+                      ? 'BEGIN AGAIN'
+                      : reachedLamp
+                      ? 'RECEIVE THE LAMP'
+                      : 'CONTINUE',
+                ),
               ),
             ],
           ),
