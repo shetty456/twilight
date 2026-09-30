@@ -32,6 +32,7 @@ class RunnerGame extends FlameGame {
   bool active = false;
   double elapsed = 0;
   double _spawnClock = 0;
+  int _distanceBeforeNight = 0;
   double lane = 0;
   int targetLane = 0;
   double leap = 0;
@@ -43,6 +44,7 @@ class RunnerGame extends FlameGame {
     lane = 0;
     targetLane = 0;
     _spawnClock = 0;
+    _distanceBeforeNight = 0;
     _hazards.clear();
     state.value = const RunState();
   }
@@ -60,7 +62,20 @@ class RunnerGame extends FlameGame {
     if (active) duck = 0.65;
   }
 
-  void continueRun() => active = true;
+  void continueRun() {
+    if (state.value.status != RunStatus.lamp) return;
+    final nextNight = state.value.night + 1;
+    _distanceBeforeNight = state.value.score;
+    elapsed = 0;
+    _spawnClock = 0;
+    _hazards.clear();
+    state.value = RunState(
+      night: nextNight,
+      lamps: state.value.lamps,
+      score: _distanceBeforeNight,
+    );
+    active = true;
+  }
   void retry() => start();
   void disposeState() => state.dispose();
 
@@ -84,16 +99,32 @@ class RunnerGame extends FlameGame {
         hazard.checked = true;
         if (hazard.lane == targetLane && leap < 0.18) {
           active = false;
-          state.value = RunState(score: state.value.score, status: RunStatus.failed);
+          state.value = RunState(
+            night: state.value.night,
+            lamps: state.value.lamps,
+            score: state.value.score,
+            status: RunStatus.failed,
+          );
           break;
         }
       }
     }
     _hazards.removeWhere((hazard) => hazard.progress > 1.2);
     if (!active) return;
-    final score = (elapsed * 18).floor();
+    final score = _distanceBeforeNight + (elapsed * 18).floor();
     if (score != state.value.score) {
-      state.value = RunState(score: score);
+      state.value = RunState(
+          night: state.value.night, lamps: state.value.lamps, score: score);
+    }
+    if (elapsed >= 15) {
+      active = false;
+      final lamps = state.value.lamps + 1;
+      state.value = RunState(
+        night: state.value.night,
+        lamps: lamps,
+        score: score,
+        status: lamps == 9 ? RunStatus.complete : RunStatus.lamp,
+      );
     }
   }
 
@@ -111,13 +142,19 @@ class RunnerGame extends FlameGame {
 
   void _drawScene(Canvas canvas) {
     const sky = Rect.fromLTWH(0, 0, 390, 844);
+    final stage = state.value.night <= 3 ? 0 : state.value.night <= 6 ? 1 : 2;
+    final skyColors = switch (stage) {
+      0 => const [Color(0xFF100D1D), Color(0xFF342037), Color(0xFF9F6044)],
+      1 => const [Color(0xFF241019), Color(0xFF79332D), Color(0xFFD58A4C)],
+      _ => const [Color(0xFF292B48), Color(0xFF756C83), Color(0xFFE4B887)],
+    };
     canvas.drawRect(
       sky,
       Paint()
-        ..shader = const LinearGradient(
+        ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF100D1D), Color(0xFF342037), Color(0xFF9F6044)],
+          colors: skyColors,
           stops: [0, 0.58, 1],
         ).createShader(sky),
     );
@@ -125,6 +162,13 @@ class RunnerGame extends FlameGame {
       ..shader = const RadialGradient(colors: [Color(0x99E7A65C), Color(0x00E7A65C)])
           .createShader(const Rect.fromLTWH(95, 270, 200, 200));
     canvas.drawCircle(const Offset(195, 370), 100, glow);
+
+    // The lamp carried at the horizon grows brighter with each completed night.
+    final lampRadius = 4.0 + state.value.lamps * 1.1;
+    canvas.drawCircle(const Offset(195, 372), lampRadius * 2.3,
+        Paint()..color = const Color(0x44FFC77A));
+    canvas.drawCircle(const Offset(195, 372), lampRadius,
+        Paint()..color = const Color(0xFFFFD69A));
 
     for (var i = 0; i < 8; i++) {
       final x = i.isEven ? 18.0 + i * 3 : 375.0 - i * 3;
