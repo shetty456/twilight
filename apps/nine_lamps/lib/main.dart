@@ -1,17 +1,35 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'runner_game.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  runApp(const NineLampsApp());
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  final preferences = await SharedPreferences.getInstance();
+  final savedLamps = (preferences.getInt('nine_lamps.progress.lamps') ?? 0)
+      .clamp(0, 9);
+  runApp(
+    NineLampsApp(
+      savedLamps: savedLamps,
+      saveLamps: (value) async {
+        await preferences.setInt('nine_lamps.progress.lamps', value);
+      },
+    ),
+  );
 }
 
 class NineLampsApp extends StatelessWidget {
-  const NineLampsApp({super.key});
+  const NineLampsApp({
+    super.key,
+    required this.savedLamps,
+    required this.saveLamps,
+  });
+
+  final int savedLamps;
+  final Future<void> Function(int) saveLamps;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -27,12 +45,19 @@ class NineLampsApp extends StatelessWidget {
       ),
       useMaterial3: true,
     ),
-    home: const RunnerPage(),
+    home: RunnerPage(savedLamps: savedLamps, saveLamps: saveLamps),
   );
 }
 
 class RunnerPage extends StatefulWidget {
-  const RunnerPage({super.key});
+  const RunnerPage({
+    super.key,
+    required this.savedLamps,
+    required this.saveLamps,
+  });
+
+  final int savedLamps;
+  final Future<void> Function(int) saveLamps;
 
   @override
   State<RunnerPage> createState() => _RunnerPageState();
@@ -45,7 +70,10 @@ class _RunnerPageState extends State<RunnerPage> {
   @override
   void initState() {
     super.initState();
-    game = RunnerGame();
+    game = RunnerGame(
+      initialLamps: widget.savedLamps,
+      saveLamps: widget.saveLamps,
+    );
   }
 
   @override
@@ -66,7 +94,7 @@ class _RunnerPageState extends State<RunnerPage> {
         fit: StackFit.expand,
         children: [
           GameWidget(game: game),
-          if (!playing) _Opening(onStart: start),
+          if (!playing) _Opening(onStart: start, savedLamps: widget.savedLamps),
           if (playing) ...[
             GestureDetector(
               behavior: HitTestBehavior.translucent,
@@ -229,8 +257,9 @@ class _Panel extends StatelessWidget {
 }
 
 class _Opening extends StatelessWidget {
-  const _Opening({required this.onStart});
+  const _Opening({required this.onStart, required this.savedLamps});
   final VoidCallback onStart;
+  final int savedLamps;
 
   @override
   Widget build(BuildContext context) => Stack(
@@ -319,9 +348,11 @@ class _Opening extends StatelessWidget {
                           foregroundColor: const Color(0xFF241408),
                           minimumSize: const Size(double.infinity, 56),
                         ),
-                        child: const Text(
-                          'BEGIN THE FIRST NIGHT',
-                          style: TextStyle(
+                        child: Text(
+                          savedLamps > 0 && savedLamps < 9
+                              ? 'RESUME NIGHT ${savedLamps + 1}'
+                              : 'BEGIN THE FIRST NIGHT',
+                          style: const TextStyle(
                             fontSize: 12,
                             letterSpacing: 1.4,
                             fontWeight: FontWeight.w800,

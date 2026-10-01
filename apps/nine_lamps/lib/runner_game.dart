@@ -37,7 +37,24 @@ class RunState {
 class RunnerGame extends FlameGame {
   static const double jumpDuration = 0.82;
   static const double slideDuration = 0.72;
-  final ValueNotifier<RunState> state = ValueNotifier(const RunState());
+  RunnerGame({
+    required int initialLamps,
+    required Future<void> Function(int) saveLamps,
+  }) : _saveLamps = saveLamps {
+    final lamps = initialLamps.clamp(0, 9);
+    _distanceBeforeNight = lamps * 270;
+    state = ValueNotifier(
+      RunState(
+        night: math.min(lamps + 1, 9),
+        lamps: lamps,
+        score: _distanceBeforeNight,
+        status: lamps == 9 ? RunStatus.complete : RunStatus.running,
+      ),
+    );
+  }
+
+  late final ValueNotifier<RunState> state;
+  final Future<void> Function(int) _saveLamps;
   final math.Random _random = math.Random(9);
   final List<_Hazard> _hazards = [];
   bool active = false;
@@ -75,16 +92,23 @@ class RunnerGame extends FlameGame {
   }
 
   void start() {
+    final previousLamps = state.value.lamps;
+    final lamps = previousLamps == 9 ? 0 : previousLamps;
     active = true;
     elapsed = 0;
     lane = 0;
     targetLane = 0;
     _spawnClock = 0;
-    _distanceBeforeNight = 0;
+    _distanceBeforeNight = lamps * 270;
     leap = 0;
     duck = 0;
     _hazards.clear();
-    state.value = const RunState();
+    state.value = RunState(
+      night: lamps + 1,
+      lamps: lamps,
+      score: _distanceBeforeNight,
+    );
+    if (previousLamps == 9) unawaited(_persistLamps(0));
   }
 
   void shift(int direction) {
@@ -114,6 +138,7 @@ class RunnerGame extends FlameGame {
     if (state.value.status == RunStatus.reachedLamp) {
       unawaited(AudioCues.lamp());
       final lamps = state.value.lamps + 1;
+      unawaited(_persistLamps(lamps));
       state.value = RunState(
         night: state.value.night,
         lamps: lamps,
@@ -170,6 +195,14 @@ class RunnerGame extends FlameGame {
       lamps: state.value.lamps,
       score: _distanceBeforeNight,
     );
+  }
+
+  Future<void> _persistLamps(int lamps) async {
+    try {
+      await _saveLamps(lamps);
+    } catch (error) {
+      debugPrint('Could not save lamp progress: $error');
+    }
   }
 
   void disposeState() => state.dispose();
