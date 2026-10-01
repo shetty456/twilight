@@ -1,9 +1,12 @@
 import 'dart:math' as math;
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import 'audio_cues.dart';
 
 enum RunStatus { running, failed, reachedLamp, lampLit, complete }
 
@@ -81,6 +84,7 @@ class RunnerGame extends FlameGame {
 
   void continueRun() {
     if (state.value.status == RunStatus.reachedLamp) {
+      unawaited(AudioCues.lamp());
       final lamps = state.value.lamps + 1;
       state.value = RunState(
         night: state.value.night,
@@ -128,6 +132,7 @@ class RunnerGame extends FlameGame {
         if (hazard.lane == targetLane && leap < 0.18) {
           active = false;
           HapticFeedback.mediumImpact();
+          unawaited(AudioCues.hit());
           state.value = RunState(
             night: state.value.night,
             lamps: state.value.lamps,

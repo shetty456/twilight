@@ -11,6 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   flame: ^1.23.0
+  flame_audio: ^2.10.6
 
 dev_dependencies:
   flutter_test:
@@ -33,3 +34,4 @@ flutter:
     - assets/images/devotee_run_2.png
     - assets/images/diya_collectible.png
     - assets/images/stone_obstacle.png
+    - assets/audio/
