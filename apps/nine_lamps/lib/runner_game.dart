@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 
 import 'audio_cues.dart';
 
-enum RunStatus { running, failed, reachedLamp, lampLit, complete }
+enum RunStatus { running, paused, failed, reachedLamp, lampLit, complete }
 
 enum HazardKind { stone, arch }
 
@@ -17,12 +17,14 @@ class RunState {
     this.night = 1,
     this.lamps = 0,
     this.score = 0,
+    this.progress = 0,
     this.status = RunStatus.running,
   });
 
   final int night;
   final int lamps;
   final int score;
+  final double progress;
   final RunStatus status;
 
   String get phase => night <= 3
@@ -79,6 +81,8 @@ class RunnerGame extends FlameGame {
     targetLane = 0;
     _spawnClock = 0;
     _distanceBeforeNight = 0;
+    leap = 0;
+    duck = 0;
     _hazards.clear();
     state.value = const RunState();
   }
@@ -97,6 +101,16 @@ class RunnerGame extends FlameGame {
   }
 
   void continueRun() {
+    if (state.value.status == RunStatus.paused) {
+      active = true;
+      state.value = RunState(
+        night: state.value.night,
+        lamps: state.value.lamps,
+        score: state.value.score,
+        progress: state.value.progress,
+      );
+      return;
+    }
     if (state.value.status == RunStatus.reachedLamp) {
       unawaited(AudioCues.lamp());
       final lamps = state.value.lamps + 1;
@@ -104,6 +118,7 @@ class RunnerGame extends FlameGame {
         night: state.value.night,
         lamps: lamps,
         score: state.value.score,
+        progress: 1,
         status: lamps == 9 ? RunStatus.complete : RunStatus.lampLit,
       );
       return;
@@ -113,6 +128,8 @@ class RunnerGame extends FlameGame {
     _distanceBeforeNight = state.value.score;
     elapsed = 0;
     _spawnClock = 0;
+    leap = 0;
+    duck = 0;
     _hazards.clear();
     state.value = RunState(
       night: nextNight,
@@ -122,7 +139,39 @@ class RunnerGame extends FlameGame {
     active = true;
   }
 
-  void retry() => start();
+  void pauseRun() {
+    if (!active) return;
+    active = false;
+    state.value = RunState(
+      night: state.value.night,
+      lamps: state.value.lamps,
+      score: state.value.score,
+      progress: state.value.progress,
+      status: RunStatus.paused,
+    );
+  }
+
+  void retry() {
+    if (state.value.status == RunStatus.complete) {
+      start();
+      return;
+    }
+    if (state.value.status != RunStatus.failed) return;
+    active = true;
+    elapsed = 0;
+    _spawnClock = 0;
+    lane = 0;
+    targetLane = 0;
+    leap = 0;
+    duck = 0;
+    _hazards.clear();
+    state.value = RunState(
+      night: state.value.night,
+      lamps: state.value.lamps,
+      score: _distanceBeforeNight,
+    );
+  }
+
   void disposeState() => state.dispose();
 
   @override
@@ -162,6 +211,7 @@ class RunnerGame extends FlameGame {
             night: state.value.night,
             lamps: state.value.lamps,
             score: state.value.score,
+            progress: (elapsed / 15).clamp(0.0, 1.0),
             status: RunStatus.failed,
           );
           break;
@@ -176,6 +226,7 @@ class RunnerGame extends FlameGame {
         night: state.value.night,
         lamps: state.value.lamps,
         score: score,
+        progress: (elapsed / 15).clamp(0.0, 1.0),
       );
     }
     if (elapsed >= 15) {
@@ -185,6 +236,7 @@ class RunnerGame extends FlameGame {
         night: state.value.night,
         lamps: state.value.lamps,
         score: score,
+        progress: 1,
         status: RunStatus.reachedLamp,
       );
     }

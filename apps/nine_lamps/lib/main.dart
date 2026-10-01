@@ -126,6 +126,17 @@ class _RunnerPageState extends State<RunnerPage> {
                               ),
                             ),
                           ),
+                          IconButton(
+                            onPressed:
+                                game.state.value.status == RunStatus.running
+                                ? game.pauseRun
+                                : null,
+                            icon: const Icon(
+                              Icons.pause_circle_outline_rounded,
+                            ),
+                            color: const Color(0xFFFFD69A),
+                            tooltip: 'Pause run',
+                          ),
                         ],
                       ),
                       const SizedBox(height: 14),
@@ -143,6 +154,18 @@ class _RunnerPageState extends State<RunnerPage> {
                                   ? const Color(0xFFFFBD5D)
                                   : const Color(0x88DDC6A6),
                             ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: game.state.value.progress,
+                          minHeight: 5,
+                          backgroundColor: const Color(0xAA17131D),
+                          valueColor: const AlwaysStoppedAnimation(
+                            Color(0xFFFFC777),
                           ),
                         ),
                       ),
@@ -334,6 +357,29 @@ class _EndPanel extends StatelessWidget {
     final complete = status == RunStatus.complete;
     final failed = status == RunStatus.failed;
     final reachedLamp = status == RunStatus.reachedLamp;
+    final paused = status == RunStatus.paused;
+    final title = switch (status) {
+      RunStatus.running => '',
+      RunStatus.paused => 'THE JOURNEY RESTS',
+      RunStatus.failed => 'THE PATH WAITS FOR YOU',
+      RunStatus.reachedLamp => 'A LAMP AWAITS',
+      RunStatus.lampLit when lamps == 3 => 'THE FIRE AWAKENS',
+      RunStatus.lampLit when lamps == 6 => 'THE SKY OPENS',
+      RunStatus.lampLit => 'A LAMP IS LIT',
+      RunStatus.complete => 'THE LIGHT IS EVERYWHERE',
+    };
+    final message = switch (status) {
+      RunStatus.running => '',
+      RunStatus.paused => 'Breathe, then return to the path.',
+      RunStatus.failed => 'Rise and try this night again. Your lamps remain.',
+      RunStatus.reachedLamp => 'Pause. Receive the light of this night.',
+      RunStatus.lampLit when lamps == 3 =>
+        'Three lamps gathered. The stillness gives way to motion.',
+      RunStatus.lampLit when lamps == 6 =>
+        'Six lamps gathered. The path grows clear and quiet.',
+      RunStatus.lampLit => '$lamps of nine lamps gathered',
+      RunStatus.complete => 'Nine nights carried into one dawn.',
+    };
     return ColoredBox(
       color: const Color(0xD9100E18),
       child: Center(
@@ -342,19 +388,22 @@ class _EndPanel extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
-                height: 120,
-                child: Image.asset('assets/images/diya_collectible.png'),
-              ),
+              if (paused || failed)
+                Icon(
+                  paused
+                      ? Icons.pause_circle_outline_rounded
+                      : Icons.auto_awesome_rounded,
+                  size: 58,
+                  color: const Color(0xFFFFC777),
+                )
+              else
+                SizedBox(
+                  height: 120,
+                  child: Image.asset('assets/images/diya_collectible.png'),
+                ),
               const SizedBox(height: 16),
               Text(
-                complete
-                    ? 'THE LIGHT IS EVERYWHERE'
-                    : failed
-                    ? 'THE PATH WAITS FOR YOU'
-                    : reachedLamp
-                    ? 'A LAMP AWAITS'
-                    : 'A LAMP IS LIT',
+                title,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Color(0xFFFFE8C8),
@@ -366,13 +415,7 @@ class _EndPanel extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                complete
-                    ? 'Nine nights carried into one dawn.'
-                    : failed
-                    ? 'Rise, breathe, and begin again.'
-                    : reachedLamp
-                    ? 'Pause. Receive the light of this night.'
-                    : '$lamps of nine lamps gathered',
+                message,
                 style: const TextStyle(color: Color(0xFFE7CCAC), fontSize: 15),
               ),
               const SizedBox(height: 30),
@@ -385,9 +428,13 @@ class _EndPanel extends StatelessWidget {
                 ),
                 child: Text(
                   complete || failed
-                      ? 'BEGIN AGAIN'
+                      ? complete
+                            ? 'BEGIN AGAIN'
+                            : 'TRY THIS NIGHT AGAIN'
                       : reachedLamp
                       ? 'RECEIVE THE LAMP'
+                      : paused
+                      ? 'RESUME'
                       : 'CONTINUE',
                 ),
               ),
