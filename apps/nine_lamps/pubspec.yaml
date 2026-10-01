@@ -42,4 +42,9 @@ flutter:
     - assets/images/overhead_arch.png
     - assets/images/side_valley_night.png
     - assets/images/devotee_side_run.png
+    - assets/images/devotee_run_sheet.png
+    - assets/images/temple_pillar_near.png
+    - assets/images/temple_stone_low.png
+    - assets/images/temple_arch_low.png
+    - assets/images/lotus_offering.png
     - assets/audio/

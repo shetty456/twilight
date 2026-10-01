@@ -18,6 +18,13 @@ class _PlacedObstacle {
   bool checked = false;
 }
 
+class _Offering {
+  _Offering(this.x, this.high);
+  final double x;
+  final bool high;
+  bool collected = false;
+}
+
 /// A camera-led side view of the journey. Distances are in world pixels.
 class SideScrollGame extends FlameGame {
   SideScrollGame({
@@ -37,18 +44,24 @@ class SideScrollGame extends FlameGame {
   final Future<void> Function(int) _saveLamps;
   final math.Random _random = math.Random(91);
   final List<_PlacedObstacle> _obstacles = [];
+  final List<_Offering> _offerings = [];
   ui.Image? _landscape;
-  ui.Image? _devotee;
+  ui.Image? _devoteeSheet;
   ui.Image? _diya;
   ui.Image? _stone;
   ui.Image? _arch;
+  ui.Image? _pillar;
+  ui.Image? _lotus;
   bool active = false;
   double elapsed = 0;
   double _spawnClock = 0;
+  double _offeringClock = 0;
   double _jumpTime = 0;
   double _slideTime = 0;
   double _cameraX = 0;
   int _scoreBase = 0;
+  int _offeringCount = 0;
+  int _offeringSequence = 0;
 
   static const _runSeconds = 15.0;
   static const _speed = 144.0;
@@ -58,10 +71,12 @@ class SideScrollGame extends FlameGame {
   Future<void> onLoad() async {
     await super.onLoad();
     _landscape = await images.load('side_valley_night.png');
-    _devotee = await images.load('devotee_side_run.png');
+    _devoteeSheet = await images.load('devotee_run_sheet.png');
     _diya = await images.load('diya_collectible.png');
-    _stone = await images.load('stone_obstacle.png');
-    _arch = await images.load('overhead_arch.png');
+    _stone = await images.load('temple_stone_low.png');
+    _arch = await images.load('temple_arch_low.png');
+    _pillar = await images.load('temple_pillar_near.png');
+    _lotus = await images.load('lotus_offering.png');
   }
 
   void start() {
@@ -115,6 +130,7 @@ class SideScrollGame extends FlameGame {
         night: state.value.night,
         lamps: lamps,
         score: state.value.score,
+        offerings: _offeringCount,
         progress: 1,
         status: lamps == 9 ? RunStatus.complete : RunStatus.lampLit,
       );
@@ -134,6 +150,7 @@ class SideScrollGame extends FlameGame {
     night: state.value.night,
     lamps: state.value.lamps,
     score: state.value.score,
+    offerings: _offeringCount,
     progress: state.value.progress,
     status: status,
   );
@@ -142,10 +159,14 @@ class SideScrollGame extends FlameGame {
     active = false;
     elapsed = 0;
     _spawnClock = 0;
+    _offeringClock = 0;
     _jumpTime = 0;
     _slideTime = 0;
     _cameraX = 0;
     _obstacles.clear();
+    _offerings.clear();
+    _offeringCount = 0;
+    _offeringSequence = 0;
   }
 
   Future<void> _persist(int lamps) async {
@@ -165,6 +186,7 @@ class SideScrollGame extends FlameGame {
     final step = math.min(dt, 0.05);
     elapsed += step;
     _spawnClock += step;
+    _offeringClock += step;
     _jumpTime = math.max(0, _jumpTime - step);
     _slideTime = math.max(0, _slideTime - step);
     final playerWorldX = elapsed * _speed;
@@ -176,6 +198,11 @@ class SideScrollGame extends FlameGame {
           ? _Obstacle.stone
           : _Obstacle.arch;
       _obstacles.add(_PlacedObstacle(playerWorldX + 480, kind));
+    }
+    if (_offeringClock >= 1.12 && elapsed < 11.7) {
+      _offeringClock = 0;
+      _offerings.add(_Offering(playerWorldX + 390, _offeringSequence % 3 == 2));
+      _offeringSequence++;
     }
     for (final obstacle in _obstacles) {
       if (obstacle.checked || obstacle.x - playerWorldX > 20) continue;
@@ -192,12 +219,22 @@ class SideScrollGame extends FlameGame {
       }
     }
     _obstacles.removeWhere((o) => o.x < playerWorldX - 300);
-    final score = _scoreBase + (elapsed * 18).floor();
-    if (score != state.value.score) {
+    for (final offering in _offerings) {
+      if (offering.collected || (offering.x - playerWorldX).abs() > 25) continue;
+      offering.collected = true;
+      if (!offering.high || _jumpTime > 0.18) {
+        _offeringCount++;
+        HapticFeedback.selectionClick();
+      }
+    }
+    _offerings.removeWhere((o) => o.x < playerWorldX - 80);
+    final score = _scoreBase + (elapsed * 18).floor() + _offeringCount * 25;
+    if (score != state.value.score || _offeringCount != state.value.offerings) {
       state.value = RunState(
         night: state.value.night,
         lamps: state.value.lamps,
         score: score,
+        offerings: _offeringCount,
         progress: (elapsed / _runSeconds).clamp(0, 1),
       );
     }
@@ -272,6 +309,17 @@ class SideScrollGame extends FlameGame {
       if (x < -90 || x > 470) continue;
       _paintObstacle(canvas, obstacle, x);
     }
+    for (final offering in _offerings) {
+      if (offering.collected) continue;
+      final x = playerX + offering.x - playerWorldX;
+      if (x < -40 || x > 430) continue;
+      final y = _groundY - (offering.high ? 172 : 94) +
+          math.sin(elapsed * 6 + offering.x * 0.02) * 4;
+      canvas.drawCircle(Offset(x, y), 23,
+          Paint()..color = const Color(0x55F8BF72));
+      _paintImage(canvas, _lotus, Rect.fromCenter(
+          center: Offset(x, y), width: 34, height: 34));
+    }
     if (elapsed >= 11.3 || state.value.status == RunStatus.reachedLamp) {
       final x = state.value.status == RunStatus.reachedLamp
           ? 270.0 : playerX + (15 - elapsed) * _speed;
@@ -316,8 +364,8 @@ class SideScrollGame extends FlameGame {
     canvas.drawOval(Rect.fromCenter(center: Offset(x, _groundY + 3), width: 65, height: 13),
         Paint()..color = const Color(0xAA08070C));
     _paintImage(canvas, stone ? _stone : _arch,
-        stone ? Rect.fromLTWH(x - 29, _groundY - 51, 58, 52)
-              : Rect.fromLTWH(x - 38, _groundY - 122, 76, 122));
+        stone ? Rect.fromLTWH(x - 35, _groundY - 53, 70, 54)
+              : Rect.fromLTWH(x - 43, _groundY - 132, 86, 132));
   }
 
   void _paintPlayer(Canvas canvas, double x) {
@@ -331,9 +379,21 @@ class SideScrollGame extends FlameGame {
         Paint()..color = const Color(0x9907060C));
     final height = _slideTime > 0 ? 102.0 : 160.0;
     canvas.save();
-    canvas.translate(x, _groundY - jump - bob);
+    canvas.translate(x, _groundY + 27 - jump - bob);
     canvas.rotate(_jumpTime > 0 ? -0.10 : stride * 0.028);
-    _paintImage(canvas, _devotee, Rect.fromLTWH(-70, -height, 140, height));
+    final sheet = _devoteeSheet;
+    if (sheet != null) {
+      final frame = _jumpTime > 0 ? 4 : active ? ((elapsed * 12).floor() % 4) : 0;
+      final source = Rect.fromLTWH(
+        frame * sheet.width / 6,
+        0,
+        sheet.width / 6,
+        sheet.height.toDouble(),
+      );
+      canvas.drawImageRect(sheet, source,
+          Rect.fromLTWH(-46, -height - 27, 92, height + 27),
+          Paint()..filterQuality = FilterQuality.medium);
+    }
     canvas.restore();
     if (active && _jumpTime <= 0 && _slideTime <= 0) {
       canvas.drawCircle(Offset(x - 39, _groundY - 10), 2.5,
@@ -346,14 +406,8 @@ class SideScrollGame extends FlameGame {
     final offset = (_cameraX * 1.18) % spacing;
     for (var i = -1; i < 3; i++) {
       final x = i * spacing - offset + 250;
-      canvas.drawRect(Rect.fromLTWH(x, 154, 24, 530),
-          Paint()..color = const Color(0xBB120F1C));
-      canvas.drawRect(Rect.fromLTWH(x - 16, 153, 56, 19),
-          Paint()..color = const Color(0xFF624349));
-      canvas.drawRect(Rect.fromLTWH(x - 12, 670, 48, 20),
-          Paint()..color = const Color(0xFF5D4146));
-      canvas.drawCircle(Offset(x + 12, 295), 5,
-          Paint()..color = const Color(0x66F9B875));
+      _paintImage(canvas, _pillar,
+          Rect.fromLTWH(x - 32, 160, 88, 530));
     }
   }
 

@@ -142,13 +142,25 @@ class _RunnerPageState extends State<RunnerPage> {
                           ),
                           const Spacer(),
                           _Panel(
-                            child: Text(
-                              '${game.state.value.score} m',
-                              style: const TextStyle(
-                                color: Color(0xFFFFF2DC),
-                                fontWeight: FontWeight.w700,
-                                fontSize: 18,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '${game.state.value.score} m',
+                                  style: const TextStyle(
+                                    color: Color(0xFFFFF2DC),
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                Text(
+                                  '✦ ${game.state.value.offerings} offerings',
+                                  style: const TextStyle(
+                                    color: Color(0xFFFFC777),
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           IconButton(

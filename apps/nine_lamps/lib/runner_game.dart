@@ -17,6 +17,7 @@ class RunState {
     this.night = 1,
     this.lamps = 0,
     this.score = 0,
+    this.offerings = 0,
     this.progress = 0,
     this.status = RunStatus.running,
   });
@@ -24,6 +25,7 @@ class RunState {
   final int night;
   final int lamps;
   final int score;
+  final int offerings;
   final double progress;
   final RunStatus status;
 
