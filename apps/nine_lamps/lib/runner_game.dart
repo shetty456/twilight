@@ -10,6 +10,8 @@ import 'audio_cues.dart';
 
 enum RunStatus { running, failed, reachedLamp, lampLit, complete }
 
+enum HazardKind { stone, arch }
+
 class RunState {
   const RunState({
     this.night = 1,
@@ -31,6 +33,8 @@ class RunState {
 }
 
 class RunnerGame extends FlameGame {
+  static const double jumpDuration = 0.82;
+  static const double slideDuration = 0.72;
   final ValueNotifier<RunState> state = ValueNotifier(const RunState());
   final math.Random _random = math.Random(9);
   final List<_Hazard> _hazards = [];
@@ -51,6 +55,7 @@ class RunnerGame extends FlameGame {
   ui.Image? _devoteeSlide;
   ui.Image? _diya;
   ui.Image? _stoneObstacle;
+  ui.Image? _overheadArch;
 
   @override
   Future<void> onLoad() async {
@@ -64,6 +69,7 @@ class RunnerGame extends FlameGame {
     _devoteeSlide = await images.load('devotee_slide.png');
     _diya = await images.load('diya_collectible.png');
     _stoneObstacle = await images.load('stone_obstacle.png');
+    _overheadArch = await images.load('overhead_arch.png');
   }
 
   void start() {
@@ -83,11 +89,11 @@ class RunnerGame extends FlameGame {
   }
 
   void jump() {
-    if (active && leap <= 0) leap = 0.75;
+    if (active && leap <= 0 && duck <= 0) leap = jumpDuration;
   }
 
   void slide() {
-    if (active) duck = 0.65;
+    if (active && duck <= 0 && leap <= 0) duck = slideDuration;
   }
 
   void continueRun() {
@@ -129,15 +135,26 @@ class RunnerGame extends FlameGame {
     lane += (targetLane - lane) * math.min(1, step * 12);
     leap = math.max(0, leap - step);
     duck = math.max(0, duck - step);
-    if (_spawnClock > 1.45 && elapsed < 10.5) {
+    final night = state.value.night;
+    final spawnInterval = math.max(0.98, 1.65 - (night - 1) * 0.065);
+    final hazardSpeed = 0.44 + (night - 1) * 0.022;
+    if (_spawnClock > spawnInterval && elapsed < 9.4) {
       _spawnClock = 0;
-      _hazards.add(_Hazard(_random.nextInt(3) - 1));
+      final kind = night <= 2 || _random.nextDouble() < 0.58
+          ? HazardKind.stone
+          : HazardKind.arch;
+      _hazards.add(_Hazard(_random.nextInt(3) - 1, kind));
     }
     for (final hazard in _hazards) {
-      hazard.progress += step * 0.48;
+      hazard.progress += step * hazardSpeed;
       if (!hazard.checked && hazard.progress >= 0.9) {
         hazard.checked = true;
-        if (hazard.lane == targetLane && leap < 0.18) {
+        final sameLane = (lane - hazard.lane).abs() < 0.55;
+        final avoidsByAction = switch (hazard.kind) {
+          HazardKind.stone => leap > 0.18,
+          HazardKind.arch => duck > 0.12,
+        };
+        if (sameLane && !avoidsByAction) {
           active = false;
           HapticFeedback.mediumImpact();
           unawaited(AudioCues.hit());
@@ -343,14 +360,22 @@ class RunnerGame extends FlameGame {
       Paint()..color = const Color(0xFFFFD69A),
     );
 
-    for (final hazard in _hazards) {
+    final hazardsBackToFront = [..._hazards]
+      ..sort((a, b) => a.progress.compareTo(b.progress));
+    for (final hazard in hazardsBackToFront) {
       final p = hazard.progress.clamp(0.0, 1.0);
       final y = 305 + p * p * 500;
       final x = 195 + hazard.lane * (42 + p * 86);
-      final sprite = _stoneObstacle;
+      final sprite = hazard.kind == HazardKind.stone
+          ? _stoneObstacle
+          : _overheadArch;
       if (sprite != null) {
-        final height = 12 + p * 68;
-        final width = height * sprite.width / sprite.height;
+        final height = hazard.kind == HazardKind.stone
+            ? 12 + p * 68
+            : 28 + p * 125;
+        final width = hazard.kind == HazardKind.stone
+            ? height * sprite.width / sprite.height
+            : 28 + p * 112;
         canvas.drawOval(
           Rect.fromCenter(
             center: Offset(x, y - 3),
@@ -401,7 +426,7 @@ class RunnerGame extends FlameGame {
 
     final playerX = 195.0 + lane * 120;
     final jumpY = leap > 0
-        ? math.sin((0.75 - leap) / 0.75 * math.pi) * 80
+        ? math.sin((jumpDuration - leap) / jumpDuration * math.pi) * 80
         : 0.0;
     final runPhase = elapsed * math.pi * 2 * 1.55;
     final stride = active ? math.sin(runPhase) : 0.0;
@@ -565,8 +590,9 @@ class RunnerGame extends FlameGame {
 }
 
 class _Hazard {
-  _Hazard(this.lane);
+  _Hazard(this.lane, this.kind);
   final int lane;
+  final HazardKind kind;
   double progress = 0;
   bool checked = false;
 }
