@@ -30,6 +30,8 @@ flutter:
   assets:
     - assets/images/world_concept.png
     - assets/images/night_one_path.png
+    - assets/images/rajas_path.png
+    - assets/images/sattva_path.png
     - assets/images/devotee_run_1.png
     - assets/images/devotee_run_2.png
     - assets/images/diya_collectible.png

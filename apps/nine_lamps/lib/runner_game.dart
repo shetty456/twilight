@@ -43,6 +43,8 @@ class RunnerGame extends FlameGame {
   double leap = 0;
   double duck = 0;
   ui.Image? _nightOnePath;
+  ui.Image? _rajasPath;
+  ui.Image? _sattvaPath;
   ui.Image? _devoteeRunOne;
   ui.Image? _devoteeRunTwo;
   ui.Image? _diya;
@@ -52,6 +54,8 @@ class RunnerGame extends FlameGame {
   Future<void> onLoad() async {
     await super.onLoad();
     _nightOnePath = await images.load('night_one_path.png');
+    _rajasPath = await images.load('rajas_path.png');
+    _sattvaPath = await images.load('sattva_path.png');
     _devoteeRunOne = await images.load('devotee_run_1.png');
     _devoteeRunTwo = await images.load('devotee_run_2.png');
     _diya = await images.load('diya_collectible.png');
@@ -178,7 +182,11 @@ class RunnerGame extends FlameGame {
   }
 
   void _drawScene(Canvas canvas) {
-    final background = _nightOnePath;
+    final background = switch (state.value.night) {
+      <= 3 => _nightOnePath,
+      <= 6 => _rajasPath,
+      _ => _sattvaPath,
+    };
     if (background != null) {
       const target = Rect.fromLTWH(0, 0, 390, 844);
       final zoom = 1.0 + (elapsed / 15).clamp(0.0, 1.0) * 0.25;
@@ -197,9 +205,9 @@ class RunnerGame extends FlameGame {
         Paint()..filterQuality = FilterQuality.medium,
       );
       final tint = switch (state.value.night) {
-        <= 3 => const Color(0x220D1020),
-        <= 6 => const Color(0x33A33F20),
-        _ => const Color(0x44B9B6D5),
+        <= 3 => const Color(0x1A0D1020),
+        <= 6 => const Color(0x130A0504),
+        _ => const Color(0x0D061726),
       };
       canvas.drawRect(target, Paint()..color = tint);
       _drawAtmosphere(canvas);
