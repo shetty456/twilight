@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'runner_game.dart';
+import 'side_scroll_game.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,13 +65,13 @@ class RunnerPage extends StatefulWidget {
 }
 
 class _RunnerPageState extends State<RunnerPage> {
-  late final RunnerGame game;
+  late final SideScrollGame game;
   bool playing = false;
 
   @override
   void initState() {
     super.initState();
-    game = RunnerGame(
+    game = SideScrollGame(
       initialLamps: widget.savedLamps,
       saveLamps: widget.saveLamps,
     );
@@ -98,10 +99,6 @@ class _RunnerPageState extends State<RunnerPage> {
           if (playing) ...[
             GestureDetector(
               behavior: HitTestBehavior.translucent,
-              onHorizontalDragEnd: (details) {
-                final speed = details.primaryVelocity ?? 0;
-                if (speed.abs() > 80) game.shift(speed > 0 ? 1 : -1);
-              },
               onVerticalDragEnd: (details) {
                 final speed = details.primaryVelocity ?? 0;
                 if (speed < -80) game.jump();
@@ -221,7 +218,7 @@ class _RunnerPageState extends State<RunnerPage> {
               right: 0,
               child: IgnorePointer(
                 child: Text(
-                  'SWIPE TO CHANGE LANES  •  UP TO JUMP  •  DOWN TO SLIDE',
+                  'TAP OR SWIPE UP TO JUMP  •  SWIPE DOWN TO SLIDE',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.67),

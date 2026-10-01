@@ -40,4 +40,6 @@ flutter:
     - assets/images/diya_collectible.png
     - assets/images/stone_obstacle.png
     - assets/images/overhead_arch.png
+    - assets/images/side_valley_night.png
+    - assets/images/devotee_side_run.png
     - assets/audio/
