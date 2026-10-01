@@ -47,6 +47,8 @@ class RunnerGame extends FlameGame {
   ui.Image? _sattvaPath;
   ui.Image? _devoteeRunOne;
   ui.Image? _devoteeRunTwo;
+  ui.Image? _devoteeJump;
+  ui.Image? _devoteeSlide;
   ui.Image? _diya;
   ui.Image? _stoneObstacle;
 
@@ -58,6 +60,8 @@ class RunnerGame extends FlameGame {
     _sattvaPath = await images.load('sattva_path.png');
     _devoteeRunOne = await images.load('devotee_run_1.png');
     _devoteeRunTwo = await images.load('devotee_run_2.png');
+    _devoteeJump = await images.load('devotee_jump.png');
+    _devoteeSlide = await images.load('devotee_slide.png');
     _diya = await images.load('diya_collectible.png');
     _stoneObstacle = await images.load('stone_obstacle.png');
   }
@@ -412,10 +416,17 @@ class RunnerGame extends FlameGame {
       ),
       Paint()..color = Color.fromARGB((135 - jumpY * 0.7).round(), 8, 6, 12),
     );
-    final sprite =
-        (stride >= 0 ? _devoteeRunOne : _devoteeRunTwo) ?? _devoteeRunOne;
+    final sprite = leap > 0
+        ? _devoteeJump
+        : duck > 0
+        ? _devoteeSlide
+        : (stride >= 0 ? _devoteeRunOne : _devoteeRunTwo) ?? _devoteeRunOne;
     if (sprite != null) {
-      final height = duck > 0 ? 115.0 : 182.0;
+      final height = duck > 0
+          ? 120.0
+          : leap > 0
+          ? 170.0
+          : 182.0;
       final width = height * sprite.width / sprite.height;
       canvas.save();
       canvas.translate(playerX, 786 - jumpY - bob);

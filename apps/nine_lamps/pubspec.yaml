@@ -34,6 +34,8 @@ flutter:
     - assets/images/sattva_path.png
     - assets/images/devotee_run_1.png
     - assets/images/devotee_run_2.png
+    - assets/images/devotee_jump.png
+    - assets/images/devotee_slide.png
     - assets/images/diya_collectible.png
     - assets/images/stone_obstacle.png
     - assets/audio/
