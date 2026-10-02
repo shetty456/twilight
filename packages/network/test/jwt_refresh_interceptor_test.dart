@@ -68,9 +68,9 @@ void main() {
     });
     refreshDio.httpClientAdapter = _Adapter((options) {
       refreshes++;
-      expect(options.path, 'auth/token/refresh/');
+      expect(options.path, 'auth/jwt/refresh/');
       expect(options.uri.toString(),
-          'https://api.example.com/api/v1/auth/token/refresh/');
+          'https://api.example.com/api/v1/auth/jwt/refresh/');
       return _json(200, {'access': 'new', 'refresh': 'new-refresh'});
     });
     final client = DioClient(

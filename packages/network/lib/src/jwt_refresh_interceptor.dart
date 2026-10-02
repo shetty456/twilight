@@ -7,7 +7,7 @@ class JwtRefreshInterceptor extends Interceptor {
 
   static const skipAuthKey = 'skipAuth';
   static const _retriedKey = 'jwtRetried';
-  static const _refreshPath = 'auth/token/refresh/';
+  static const _refreshPath = 'auth/jwt/refresh/';
 
   final Dio _dio;
   final Dio _refreshDio;
