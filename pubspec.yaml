@@ -7,6 +7,7 @@ environment:
 workspace:
   - apps/nine_lamps
   - apps/template
+  - apps/vela_fm
   - packages/core
   - packages/auth
   - packages/network
