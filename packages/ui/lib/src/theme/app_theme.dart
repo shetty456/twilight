@@ -16,15 +16,15 @@ class AppThemeConfig {
 }
 
 abstract final class AppTheme {
-  static ThemeData light(
-          {Color? primaryColor,
-          AppThemeConfig config = const AppThemeConfig()}) =>
-      _build(Brightness.light, config, primaryColor);
+  static ThemeData light({
+    Color? primaryColor,
+    AppThemeConfig config = const AppThemeConfig(),
+  }) => _build(Brightness.light, config, primaryColor);
 
-  static ThemeData dark(
-          {Color? primaryColor,
-          AppThemeConfig config = const AppThemeConfig()}) =>
-      _build(Brightness.dark, config, primaryColor);
+  static ThemeData dark({
+    Color? primaryColor,
+    AppThemeConfig config = const AppThemeConfig(),
+  }) => _build(Brightness.dark, config, primaryColor);
 
   static ThemeData _build(
     Brightness brightness,
@@ -42,14 +42,17 @@ abstract final class AppTheme {
       scaffoldBackgroundColor: scheme.surface,
       textTheme: TextTheme(
         displayLarge: AppTextStyles.headline1.copyWith(color: scheme.onSurface),
-        displayMedium:
-            AppTextStyles.headline2.copyWith(color: scheme.onSurface),
+        displayMedium: AppTextStyles.headline2.copyWith(
+          color: scheme.onSurface,
+        ),
         titleLarge: AppTextStyles.title.copyWith(color: scheme.onSurface),
         bodyLarge: AppTextStyles.body.copyWith(color: scheme.onSurface),
-        bodyMedium:
-            AppTextStyles.bodySmall.copyWith(color: scheme.onSurfaceVariant),
-        labelSmall:
-            AppTextStyles.caption.copyWith(color: scheme.onSurfaceVariant),
+        bodyMedium: AppTextStyles.bodySmall.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
+        labelSmall: AppTextStyles.caption.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
         labelLarge: AppTextStyles.button.copyWith(color: scheme.onPrimary),
       ),
       appBarTheme: AppBarTheme(
@@ -60,10 +63,42 @@ abstract final class AppTheme {
         titleTextStyle: AppTextStyles.title.copyWith(color: scheme.onSurface),
       ),
       inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: scheme.surface,
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        constraints: const BoxConstraints(minHeight: 56),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(0, 56),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          ),
+          textStyle: AppTextStyles.button,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(0, 56),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          ),
+          textStyle: AppTextStyles.button,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          minimumSize: const Size(0, 44),
+          textStyle: AppTextStyles.button,
+        ),
       ),
       cardTheme: CardThemeData(
         color: scheme.surface,

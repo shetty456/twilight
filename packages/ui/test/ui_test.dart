@@ -19,17 +19,16 @@ void main() {
 
   testWidgets('AppTextField participates in Form validation', (tester) async {
     final key = GlobalKey<FormState>();
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: Form(
-          key: key,
-          child: const AppTextField(
-            label: 'Name',
-            validator: _required,
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Form(
+            key: key,
+            child: const AppTextField(label: 'Name', validator: _required),
           ),
         ),
       ),
-    ));
+    );
 
     expect(key.currentState!.validate(), isFalse);
     await tester.pump();
@@ -38,13 +37,38 @@ void main() {
     expect(key.currentState!.validate(), isTrue);
   });
 
-  testWidgets('AppSkeleton enables automatic skeleton painting',
-      (tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: AppSkeleton(isLoading: true, child: Text('Loading content')),
+  testWidgets(
+    'primary button and text field share the regular control height',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light(),
+          home: const Scaffold(
+            body: Column(
+              children: [
+                AppTextField(label: 'Phone number'),
+                AppButton(label: 'Continue', onPressed: null, expanded: true),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.getSize(find.byType(AppButton)).height, 56);
+      expect(tester.getSize(find.byType(AppTextField)).height, 56);
+    },
+  );
+
+  testWidgets('AppSkeleton enables automatic skeleton painting', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: AppSkeleton(isLoading: true, child: Text('Loading content')),
+        ),
       ),
-    ));
+    );
 
     expect(
       tester
@@ -58,10 +82,12 @@ void main() {
 
   testWidgets('confirmation sheet returns the selected action', (tester) async {
     bool? result;
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: Builder(
-            builder: (context) => TextButton(
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder:
+                (context) => TextButton(
                   onPressed: () async {
                     result = await AppConfirmationSheet.show(
                       context,
@@ -73,9 +99,11 @@ void main() {
                     );
                   },
                   child: const Text('Open'),
-                )),
+                ),
+          ),
+        ),
       ),
-    ));
+    );
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
     expect(find.text('Check before removing.'), findsOneWidget);
@@ -84,21 +112,24 @@ void main() {
     expect(result, isTrue);
   });
 
-  testWidgets('AsyncAppButton blocks duplicate actions while busy',
-      (tester) async {
+  testWidgets('AsyncAppButton blocks duplicate actions while busy', (
+    tester,
+  ) async {
     final completer = Completer<void>();
     var calls = 0;
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: AsyncAppButton(
-          label: 'Save',
-          onPressed: () {
-            calls++;
-            return completer.future;
-          },
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: AsyncAppButton(
+            label: 'Save',
+            onPressed: () {
+              calls++;
+              return completer.future;
+            },
+          ),
         ),
       ),
-    ));
+    );
 
     await tester.tap(find.text('Save'));
     await tester.pump();
@@ -110,11 +141,12 @@ void main() {
     expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
   });
 
-  testWidgets('skeleton grid renders placeholders without data',
-      (tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(body: AppSkeletonGrid(itemCount: 4)),
-    ));
+  testWidgets('skeleton grid renders placeholders without data', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: AppSkeletonGrid(itemCount: 4))),
+    );
     expect(find.byType(AppSkeletonCard), findsNWidgets(4));
   });
 }
