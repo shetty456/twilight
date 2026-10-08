@@ -26,11 +26,19 @@ computer's LAN IP and run Origin bound to `0.0.0.0:8000`. Production uses
 - `POST auth/otp/phone/request/` with `{"phone":"+919876543210"}`
 - `POST auth/otp/phone/verify/` with `{"phone":"+919876543210","otp":"3821"}`
 - `GET stories/series/`
+- Series may include an absolute HTTP(S) `thumbnail` URL. The same artwork is
+  shown on the featured card, story rows, saved stories, and episode screen.
+  A Vela gradient appears until artwork is available.
 - `GET stories/series/{series_id}/episodes/`
 - `GET stories/episodes/{episode_id}/media/` returns
   `{"episode_id":"...","audio_url":"https://...","expires_in":3600}`;
   `audio_url` and `expires_in` are `null` when audio is not ready.
 - `POST stories/playback-progress/` with `episode_id` and `progress_seconds`
+
+The Home and My Library tabs also keep saved series and recent listening
+positions on the device. Opening a recent episode resumes from its local
+position. Sign-out clears this local library because the backend does not yet
+expose account-scoped saved stories or a progress-read endpoint.
 
 All story requests require the JWT from OTP verification. The app stores the
 token pair in platform secure storage and refreshes it through

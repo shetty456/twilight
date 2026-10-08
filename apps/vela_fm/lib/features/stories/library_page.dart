@@ -5,26 +5,24 @@ import 'package:ui/ui.dart';
 import '../../app.dart';
 import '../../config/providers.dart';
 import '../../stories/models/story_models.dart';
+import '../listener/listener_library.dart';
+import 'episode_page.dart';
+import 'search_page.dart';
 import 'series_page.dart';
 import 'story_artwork.dart';
+import 'story_cards.dart';
 
-class LibraryPage extends ConsumerStatefulWidget {
-  const LibraryPage({super.key});
+class HomePage extends ConsumerWidget {
+  const HomePage({super.key});
 
-  @override
-  ConsumerState<LibraryPage> createState() => _LibraryPageState();
-}
-
-class _LibraryPageState extends ConsumerState<LibraryPage> {
-  String _query = '';
-
-  void _open(StorySeries series) => Navigator.of(
+  void _openSeries(BuildContext context, StorySeries series) => Navigator.of(
     context,
   ).push(MaterialPageRoute<void>(builder: (_) => SeriesPage(series: series)));
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final stories = ref.watch(seriesProvider);
+    final library = ref.watch(listenerLibraryProvider).valueOrNull;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -33,97 +31,140 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Sign out',
-            onPressed: () => ref.read(sessionProvider.notifier).signOut(),
-            icon: const Icon(Icons.logout_rounded),
+            tooltip: 'Search stories',
+            icon: const Icon(Icons.search_rounded),
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute<void>(builder: (_) => const SearchPage())),
           ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: () => ref.refresh(seriesProvider.future),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Text(
-              'Find your next listen',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: VelaColors.ink,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Stories for the moments that are yours.',
-              style: TextStyle(color: VelaColors.plum),
-            ),
-            const SizedBox(height: 22),
-            AppTextField(
-              hint: 'Search stories',
-              prefixIcon: const Icon(Icons.search_rounded),
-              onChanged: (value) => setState(() => _query = value.trim()),
-              textInputAction: TextInputAction.search,
-            ),
-            const SizedBox(height: 28),
             ...stories.when(
               data: (series) {
-                final matches = series.where((item) {
-                  final query = _query.toLowerCase();
-                  return item.title.toLowerCase().contains(query) ||
-                      (item.description ?? '').toLowerCase().contains(query);
-                }).toList();
                 if (series.isEmpty) {
-                  return [
-                    const _Notice(
-                      'Stories will appear here as soon as they are published.',
+                  return const [
+                    Padding(
+                      padding: EdgeInsets.all(24),
+                      child: _HomeNotice(
+                        'Stories will appear here as soon as they are published.',
+                      ),
                     ),
                   ];
                 }
-                if (matches.isEmpty) {
-                  return [
-                    const _Notice(
-                      'No stories match your search. Try another title or word.',
-                    ),
-                  ];
-                }
+                final featured = series.first;
+                final recent = library?.recent ?? const [];
                 return [
-                  if (_query.isEmpty) ...[
-                    _FeaturedStory(
-                      series: matches.first,
-                      onTap: () => _open(matches.first),
-                    ),
-                    const SizedBox(height: 30),
-                  ],
-                  Text(
-                    _query.isEmpty ? 'Explore stories' : 'Search results',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: VelaColors.ink,
-                      fontWeight: FontWeight.w800,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: _FeaturedStory(
+                      series: featured,
+                      saved: library?.isSaved(featured.id) ?? false,
+                      onOpen: () => _openSeries(context, featured),
+                      onSave: () => ref
+                          .read(listenerLibraryProvider.notifier)
+                          .toggleSaved(featured),
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  for (final story in matches) ...[
-                    _SeriesCard(series: story, onTap: () => _open(story)),
+                  if (recent.isNotEmpty) ...[
+                    const SizedBox(height: 30),
+                    const _SectionTitle('Continue listening'),
                     const SizedBox(height: 12),
+                    SizedBox(
+                      height: 114,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: recent.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) => RecentListenCard(
+                          width: 280,
+                          listen: recent[index],
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => EpisodePage(
+                                series: recent[index].series,
+                                episode: recent[index].episode,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
+                  const SizedBox(height: 30),
+                  const _SectionTitle('Stories for you'),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 240,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: series.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 14),
+                      itemBuilder: (context, index) => StoryPosterCard(
+                        series: series[index],
+                        onTap: () => _openSeries(context, series[index]),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      'Find a story for tonight',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: VelaColors.ink,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: AppButton(
+                      label: 'Search all stories',
+                      icon: Icons.search_rounded,
+                      variant: AppButtonVariant.secondary,
+                      expanded: true,
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const SearchPage(),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
                 ];
               },
-              loading: () => [
-                const Center(
+              loading: () => const [
+                Center(
                   child: Padding(
-                    padding: EdgeInsets.all(32),
+                    padding: EdgeInsets.all(48),
                     child: CircularProgressIndicator(),
                   ),
                 ),
               ],
-              error: (error, _) => [
-                const _Notice(
-                  'Could not load stories. Check your connection and try again.',
-                ),
-                const SizedBox(height: 12),
-                AppButton(
-                  label: 'Try again',
-                  variant: AppButtonVariant.secondary,
-                  onPressed: () => ref.invalidate(seriesProvider),
+              error: (_, __) => [
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      const _HomeNotice(
+                        'Could not load stories. Check your connection.',
+                      ),
+                      const SizedBox(height: 12),
+                      AppButton(
+                        label: 'Try again',
+                        variant: AppButtonVariant.secondary,
+                        onPressed: () => ref.invalidate(seriesProvider),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -135,127 +176,138 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
 }
 
 class _FeaturedStory extends StatelessWidget {
-  const _FeaturedStory({required this.series, required this.onTap});
+  const _FeaturedStory({
+    required this.series,
+    required this.saved,
+    required this.onOpen,
+    required this.onSave,
+  });
+
   final StorySeries series;
-  final VoidCallback onTap;
+  final bool saved;
+  final VoidCallback onOpen;
+  final VoidCallback onSave;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: VelaColors.blush,
-      borderRadius: BorderRadius.circular(24),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'FEATURED STORY',
-          style: TextStyle(
-            color: VelaColors.plum,
-            fontSize: 12,
-            letterSpacing: 1.5,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: 14),
-        SizedBox(
-          height: 166,
-          width: double.infinity,
-          child: StoryArtwork(thumbnail: series.thumbnail),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          series.title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: VelaColors.ink,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          series.description?.isNotEmpty == true
-              ? series.description!
-              : 'A story waiting for you.',
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: VelaColors.plum),
-        ),
-        const SizedBox(height: 18),
-        AppButton(
-          label: 'Explore story',
-          icon: Icons.arrow_forward_rounded,
-          onPressed: onTap,
-          expanded: true,
-        ),
-      ],
-    ),
-  );
-}
-
-class _SeriesCard extends StatelessWidget {
-  const _SeriesCard({required this.series, required this.onTap});
-  final StorySeries series;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Material(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(18),
-    child: InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 82,
-              height: 92,
-              child: StoryArtwork(
-                thumbnail: series.thumbnail,
-                borderRadius: 12,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    series.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: VelaColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    series.description?.isNotEmpty == true
-                        ? series.description!
-                        : 'A story waiting for you.',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: VelaColors.plum, height: 1.3),
-                  ),
+  Widget build(BuildContext context) => SizedBox(
+    height: 420,
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(26),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          StoryArtwork(thumbnail: series.thumbnail, borderRadius: 0),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0x22000000),
+                  Color(0x33000000),
+                  Color(0xE522172A),
                 ],
+                stops: [0.0, 0.4, 1.0],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: VelaColors.plum),
-          ],
-        ),
+          ),
+          Positioned(
+            left: 22,
+            right: 22,
+            bottom: 22,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'FEATURED STORY',
+                  style: TextStyle(
+                    color: Color(0xFFFFD9C2),
+                    letterSpacing: 1.8,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  series.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 29,
+                    height: 1.1,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  series.description?.isNotEmpty == true
+                      ? series.description!
+                      : 'A story waiting for you.',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFF7EDE9),
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton(
+                        label: 'Explore story',
+                        icon: Icons.play_arrow_rounded,
+                        expanded: true,
+                        onPressed: onOpen,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 56,
+                      height: 56,
+                      child: IconButton.filledTonal(
+                        tooltip: saved
+                            ? 'Remove from My Library'
+                            : 'Save to My Library',
+                        onPressed: onSave,
+                        icon: Icon(
+                          saved
+                              ? Icons.bookmark_rounded
+                              : Icons.bookmark_add_outlined,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     ),
   );
 }
 
-class _Notice extends StatelessWidget {
-  const _Notice(this.message);
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.title);
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: Text(
+      title,
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+        color: VelaColors.ink,
+        fontWeight: FontWeight.w800,
+      ),
+    ),
+  );
+}
+
+class _HomeNotice extends StatelessWidget {
+  const _HomeNotice(this.message);
   final String message;
 
   @override

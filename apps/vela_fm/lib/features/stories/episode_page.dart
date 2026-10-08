@@ -7,18 +7,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app.dart';
 import '../../config/providers.dart';
 import '../../stories/models/story_models.dart';
+import '../listener/listener_library.dart';
 import 'story_artwork.dart';
 
 class EpisodePage extends ConsumerStatefulWidget {
-  const EpisodePage({
-    super.key,
-    required this.episode,
-    required this.seriesTitle,
-    this.seriesThumbnail,
-  });
+  const EpisodePage({super.key, required this.episode, required this.series});
   final StoryEpisode episode;
-  final String seriesTitle;
-  final String? seriesThumbnail;
+  final StorySeries series;
 
   @override
   ConsumerState<EpisodePage> createState() => _EpisodePageState();
@@ -29,10 +24,13 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
   late final StreamSubscription<Duration> _positionSubscription;
   late final StreamSubscription<Duration> _durationSubscription;
   late final StreamSubscription<PlayerState> _stateSubscription;
+  late final StreamSubscription<void> _completeSubscription;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
   bool _playing = false;
   bool _busy = false;
+  int _lastLocalSave = 0;
+  bool _completed = false;
   String? _loadedUrl;
   String? _error;
 
@@ -40,7 +38,13 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
   void initState() {
     super.initState();
     _positionSubscription = _player.onPositionChanged.listen((position) {
-      if (mounted) setState(() => _position = position);
+      if (mounted) {
+        setState(() => _position = position);
+        if (position.inSeconds - _lastLocalSave >= 10) {
+          _lastLocalSave = position.inSeconds;
+          unawaited(_saveLocal());
+        }
+      }
     });
     _durationSubscription = _player.onDurationChanged.listen((duration) {
       if (mounted) setState(() => _duration = duration);
@@ -48,10 +52,32 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
     _stateSubscription = _player.onPlayerStateChanged.listen((state) {
       if (mounted) setState(() => _playing = state == PlayerState.playing);
     });
+    _completeSubscription = _player.onPlayerComplete.listen((_) {
+      if (mounted) {
+        _completed = true;
+        unawaited(
+          ref
+              .read(listenerLibraryProvider.notifier)
+              .removeRecent(widget.episode.id),
+        );
+      }
+    });
   }
+
+  Future<void> _saveLocal() => _completed
+      ? Future.value()
+      : ref
+            .read(listenerLibraryProvider.notifier)
+            .recordListening(
+              series: widget.series,
+              episode: widget.episode,
+              position: _position,
+              duration: _duration,
+            );
 
   @override
   void dispose() {
+    if (_position.inSeconds > 0 && !_completed) unawaited(_saveLocal());
     if (_position.inSeconds > 0) {
       unawaited(
         ref
@@ -63,6 +89,7 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
     _positionSubscription.cancel();
     _durationSubscription.cancel();
     _stateSubscription.cancel();
+    _completeSubscription.cancel();
     unawaited(_player.dispose());
     super.dispose();
   }
@@ -76,6 +103,7 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
     try {
       if (_playing) {
         await _player.pause();
+        await _saveLocal();
         await ref
             .read(storiesRepositoryProvider)
             .saveProgress(widget.episode.id, _position.inMilliseconds / 1000);
@@ -83,10 +111,27 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
         if (_duration > Duration.zero && _position >= _duration) {
           await _player.seek(Duration.zero);
         }
+        _completed = false;
         await _player.resume();
       } else {
+        _completed = false;
+        final saved = ref
+            .read(listenerLibraryProvider)
+            .valueOrNull
+            ?.recent
+            .where((item) => item.episode.id == widget.episode.id)
+            .firstOrNull;
         await _player.play(UrlSource(url));
         _loadedUrl = url;
+        if (saved != null && saved.positionSeconds > 0) {
+          final resumeAt = Duration(
+            milliseconds: (saved.positionSeconds * 1000).round(),
+          );
+          await _player.seek(resumeAt);
+          if (mounted) setState(() => _position = resumeAt);
+          _lastLocalSave = saved.positionSeconds.floor();
+        }
+        await _saveLocal();
       }
     } catch (error) {
       if (mounted) {
@@ -123,7 +168,7 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.seriesTitle,
+          widget.series.title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -134,7 +179,7 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
           SizedBox(
             height: 240,
             child: StoryArtwork(
-              thumbnail: widget.seriesThumbnail,
+              thumbnail: widget.series.thumbnail,
               borderRadius: 28,
             ),
           ),

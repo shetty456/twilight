@@ -5,6 +5,7 @@ import 'package:ui/ui.dart';
 import '../../app.dart';
 import '../../config/providers.dart';
 import '../../stories/models/story_models.dart';
+import '../listener/listener_library.dart';
 import 'episode_page.dart';
 import 'story_artwork.dart';
 
@@ -15,6 +16,9 @@ class SeriesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final episodes = ref.watch(episodesProvider(series.id));
+    final saved =
+        ref.watch(listenerLibraryProvider).valueOrNull?.isSaved(series.id) ??
+        false;
     return Scaffold(
       appBar: AppBar(title: const Text('Series')),
       body: ListView(
@@ -45,23 +49,58 @@ class SeriesPage extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           if (episodes.valueOrNull?.isNotEmpty == true) ...[
-            AppButton(
-              label: 'Start story',
-              icon: Icons.play_arrow_rounded,
-              expanded: true,
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => EpisodePage(
-                    episode: episodes.valueOrNull!.first,
-                    seriesTitle: series.title,
-                    seriesThumbnail: series.thumbnail,
+            Row(
+              children: [
+                Expanded(
+                  child: AppButton(
+                    label: 'Start story',
+                    icon: Icons.play_arrow_rounded,
+                    expanded: true,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => EpisodePage(
+                          episode: episodes.valueOrNull!.first,
+                          series: series,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: IconButton.filledTonal(
+                    tooltip: saved
+                        ? 'Remove from My Library'
+                        : 'Save to My Library',
+                    onPressed: () => ref
+                        .read(listenerLibraryProvider.notifier)
+                        .toggleSaved(series),
+                    icon: Icon(
+                      saved
+                          ? Icons.bookmark_rounded
+                          : Icons.bookmark_add_outlined,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 30),
-          ] else
-            const SizedBox(height: 6),
+          ] else ...[
+            AppButton(
+              label: saved ? 'Remove from My Library' : 'Save to My Library',
+              icon: saved
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_add_outlined,
+              variant: AppButtonVariant.secondary,
+              expanded: true,
+              onPressed: () => ref
+                  .read(listenerLibraryProvider.notifier)
+                  .toggleSaved(series),
+            ),
+            const SizedBox(height: 30),
+          ],
           const Text(
             'Episodes',
             style: TextStyle(
@@ -109,11 +148,8 @@ class SeriesPage extends ConsumerWidget {
                           ),
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute<void>(
-                              builder: (_) => EpisodePage(
-                                episode: episode,
-                                seriesTitle: series.title,
-                                seriesThumbnail: series.thumbnail,
-                              ),
+                              builder: (_) =>
+                                  EpisodePage(episode: episode, series: series),
                             ),
                           ),
                         ),

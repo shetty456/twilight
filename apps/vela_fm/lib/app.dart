@@ -4,7 +4,7 @@ import 'package:ui/ui.dart';
 
 import 'config/providers.dart';
 import 'features/auth/phone_sign_in_page.dart';
-import 'features/stories/library_page.dart';
+import 'features/listener/listener_shell.dart';
 
 abstract final class VelaColors {
   static const ink = Color(0xFF322536);
@@ -27,6 +27,17 @@ class VelaFmApp extends ConsumerWidget {
         foregroundColor: VelaColors.ink,
         elevation: 0,
       ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: Colors.white,
+        indicatorColor: VelaColors.blush,
+        labelTextStyle: WidgetStateProperty.all(
+          const TextStyle(
+            color: VelaColors.ink,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
     );
     return MaterialApp(
       title: title,
@@ -42,13 +53,14 @@ class _AuthGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(sessionProvider).when(
-      data: (signedIn) =>
-          signedIn ? const LibraryPage() : const PhoneSignInPage(),
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, _) => PhoneSignInPage(startupError: error.toString()),
-    );
+    return ref
+        .watch(sessionProvider)
+        .when(
+          data: (signedIn) =>
+              signedIn ? const ListenerShell() : const PhoneSignInPage(),
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (error, _) => PhoneSignInPage(startupError: error.toString()),
+        );
   }
 }
