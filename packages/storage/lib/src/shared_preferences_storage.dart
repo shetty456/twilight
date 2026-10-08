@@ -5,6 +5,9 @@ import 'storage_service.dart';
 class SharedPreferencesStorage implements StorageService {
   SharedPreferencesStorage(this._prefs);
 
+  static Future<SharedPreferencesStorage> create() async =>
+      SharedPreferencesStorage(await SharedPreferences.getInstance());
+
   final SharedPreferences _prefs;
 
   @override
