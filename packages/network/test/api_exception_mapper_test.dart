@@ -18,7 +18,7 @@ void main() {
     );
 
     final mapped = mapDioException(error);
-    expect(mapped.message, 'Server error');
+    expect(mapped.message, 'Invalid OTP.');
     expect(mapped.statusCode, 400);
   });
 }
