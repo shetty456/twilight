@@ -1,5 +1,6 @@
 FLUTTER := fvm flutter
 DART    := fvm dart
+API_BASE_URL ?= https://origin-production-5ab8.up.railway.app/api/v1/
 
 .PHONY: help setup get analyze format test clean gen run-template build-apk build-aab
 
@@ -32,22 +33,17 @@ clean: ## Clean all build artifacts
 gen: ## Run code generation (Freezed, json_serializable)
 	$(DART) run build_runner build --delete-conflicting-outputs
 
-run-template: ## Run template against local Origin (set API_BASE_URL)
-	@test -n "$(API_BASE_URL)" || (echo "Set API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/" && exit 1)
+run-template: ## Run template against the testing backend (override API_BASE_URL as needed)
 	cd apps/template && $(FLUTTER) run --dart-define=APP_ENV=development --dart-define=API_BASE_URL="$(API_BASE_URL)"
 
 build-apk: ## Build release APK for template app
-	@test -n "$(API_BASE_URL)" || (echo "Set API_BASE_URL=https://<production-host>/api/v1/" && exit 1)
 	cd apps/template && $(FLUTTER) build apk --release --dart-define=APP_ENV=production --dart-define=API_BASE_URL="$(API_BASE_URL)"
 
 build-apk-debug: ## Build debug APK for template app
-	@test -n "$(API_BASE_URL)" || (echo "Set API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/" && exit 1)
 	cd apps/template && $(FLUTTER) build apk --debug --dart-define=APP_ENV=development --dart-define=API_BASE_URL="$(API_BASE_URL)"
 
 build-aab: ## Build release AAB (Play Store) for template app
-	@test -n "$(API_BASE_URL)" || (echo "Set API_BASE_URL=https://<production-host>/api/v1/" && exit 1)
 	cd apps/template && $(FLUTTER) build appbundle --release --dart-define=APP_ENV=production --dart-define=API_BASE_URL="$(API_BASE_URL)"
 
 build-ipa: ## Build iOS release archive for template app
-	@test -n "$(API_BASE_URL)" || (echo "Set API_BASE_URL=https://<production-host>/api/v1/" && exit 1)
 	cd apps/template && $(FLUTTER) build ipa --release --dart-define=APP_ENV=production --dart-define=API_BASE_URL="$(API_BASE_URL)"

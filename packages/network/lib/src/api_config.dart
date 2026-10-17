@@ -1,6 +1,9 @@
 import 'package:core/core.dart';
 
 class ApiConfig {
+  static const defaultBaseUrl =
+      'https://origin-production-5ab8.up.railway.app/api/v1/';
+
   const ApiConfig({
     required this.baseUrl,
     required this.environment,
@@ -14,10 +17,13 @@ class ApiConfig {
   final Duration receiveTimeout;
 
   /// Build-time settings shared by every product app.
-  /// Pass APP_ENV and API_BASE_URL with --dart-define.
+  /// Override APP_ENV and API_BASE_URL with --dart-define when needed.
   factory ApiConfig.fromBuildEnvironment() {
-    const name = String.fromEnvironment('APP_ENV');
-    const url = String.fromEnvironment('API_BASE_URL');
+    const name = String.fromEnvironment('APP_ENV', defaultValue: 'development');
+    const url = String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: defaultBaseUrl,
+    );
     return ApiConfig.forEnvironment(name: name, url: url);
   }
 

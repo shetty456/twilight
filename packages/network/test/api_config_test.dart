@@ -3,6 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:network/network.dart';
 
 void main() {
+  test('uses the shared HTTPS backend for initial testing', () {
+    final config = ApiConfig.fromBuildEnvironment();
+    expect(config.environment, AppEnvironment.development);
+    expect(config.baseUrl, ApiConfig.defaultBaseUrl);
+  });
+
   test('normalizes a local development API URL', () {
     final config = ApiConfig.forEnvironment(
       name: 'development',
