@@ -1,8 +1,9 @@
-# Vela FM MVP
+# Deeksha MVP
 
-Vela FM is the working name for the pregnancy-focused story app. The name shown
-inside Flutter is configurable with `VELA_FM_APP_NAME`; the app package name is
-independent of the visible brand.
+Deeksha is the display name for the pregnancy-focused story app. The name shown
+inside Flutter is configurable with `DEEKSHA_APP_NAME` (the former
+`VELA_FM_APP_NAME` override still works). The app package name and bundle IDs
+remain independent of the visible brand.
 
 ## Run against Origin
 
@@ -13,7 +14,7 @@ The Origin backend must be reachable from the device. Its API base URL ends in
 fvm flutter run -d <device-id> \
   --dart-define=APP_ENV=development \
   --dart-define=API_BASE_URL=http://<your-computer-LAN-IP>:8000/api/v1/ \
-  --dart-define='VELA_FM_APP_NAME=Vela FM'
+  --dart-define='DEEKSHA_APP_NAME=Deeksha'
 ```
 
 For an Android emulator, the default URL is
@@ -28,7 +29,7 @@ computer's LAN IP and run Origin bound to `0.0.0.0:8000`. Production uses
 - `GET stories/series/`
 - Series may include an absolute HTTP(S) `thumbnail` URL. The same artwork is
   shown on the featured card, story rows, saved stories, and episode screen.
-  A Vela gradient appears until artwork is available.
+  A gradient appears until artwork is available.
 - `GET stories/series/{series_id}/episodes/`
 - `GET stories/episodes/{episode_id}/media/` returns
   `{"episode_id":"...","audio_url":"https://...","expires_in":3600}`;
