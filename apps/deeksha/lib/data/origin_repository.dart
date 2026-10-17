@@ -17,7 +17,7 @@ class OriginPhoneAuthRepository {
         data: {'phone': phone},
         options: Options(extra: {JwtRefreshInterceptor.skipAuthKey: true}),
       );
-      final code = response.data?['dev_otp'];
+      final code = response.data?['dev_otp'] ?? response.data?['otp'];
       return code is String && RegExp(r'^\d{4}$').hasMatch(code) ? code : null;
     } on DioException catch (error) {
       throw mapDioException(error);

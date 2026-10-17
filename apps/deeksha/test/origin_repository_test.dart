@@ -71,6 +71,18 @@ void main() {
     expect((await tokens.read())?.refresh, 'refresh-jwt');
   });
 
+  test('accepts an OTP field in a development response', () async {
+    final tokens = _Tokens();
+    final dio = Dio(BaseOptions(baseUrl: config.baseUrl));
+    dio.httpClientAdapter = _Adapter((options) =>
+        _json({'detail': 'OTP sent.', 'otp': '1234'}));
+    final repository = OriginPhoneAuthRepository(
+      DioClient(config, dio: dio, tokenStore: tokens), tokens,
+    );
+
+    expect(await repository.requestCode('+919876543210'), '1234');
+  });
+
   test('story repository decodes Origin series, episodes, and media', () async {
     final tokens = _Tokens()
       ..value = const AuthTokens(access: 'access-jwt', refresh: 'refresh-jwt');
