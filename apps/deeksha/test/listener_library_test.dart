@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:storage/storage.dart';
-import 'package:vela_fm/features/listener/listener_library.dart';
-import 'package:vela_fm/stories/models/story_models.dart';
+import 'package:deeksha/features/listener/listener_library.dart';
+import 'package:deeksha/stories/models/story_models.dart';
 
 class _MemoryStorage implements StorageService {
   final values = <String, String>{};

@@ -5,7 +5,7 @@ import 'package:auth/auth.dart';
 import 'package:core/core.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vela_fm/data/origin_repository.dart';
+import 'package:deeksha/data/origin_repository.dart';
 import 'package:network/network.dart';
 
 class _Tokens implements AuthTokenStore {

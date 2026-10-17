@@ -7,20 +7,20 @@ remain independent of the visible brand.
 
 ## Run against Origin
 
-The Origin backend must be reachable from the device. Its API base URL ends in
-`/api/v1/`.
+The app uses the shared testing backend at
+`https://origin-production-5ab8.up.railway.app/api/v1/` by default.
+The backend must be reachable from the device.
 
 ```sh
 fvm flutter run -d <device-id> \
-  --dart-define=APP_ENV=development \
-  --dart-define=API_BASE_URL=http://<your-computer-LAN-IP>:8000/api/v1/ \
   --dart-define='DEEKSHA_APP_NAME=Deeksha'
 ```
 
-For an Android emulator, the default URL is
-`http://10.0.2.2:8000/api/v1/`. On a physical phone, replace it with the
-computer's LAN IP and run Origin bound to `0.0.0.0:8000`. Production uses
-`APP_ENV=production` and requires an HTTPS API URL.
+To use another backend, pass `--dart-define=API_BASE_URL=https://<host>/api/v1/`.
+For a local Android emulator, use `http://10.0.2.2:8000/api/v1/`; for a
+physical phone, use your computer's LAN IP and run Origin bound to
+`0.0.0.0:8000`. Pass `APP_ENV=production` for production builds; those builds
+require an HTTPS API URL.
 
 ## Backend contract
 
