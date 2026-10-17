@@ -2,8 +2,11 @@ import 'package:network/network.dart';
 
 abstract final class ProductConfig {
   static const appName = String.fromEnvironment(
-    'VELA_FM_APP_NAME',
-    defaultValue: 'Vela FM',
+    'DEEKSHA_APP_NAME',
+    defaultValue: String.fromEnvironment(
+      'VELA_FM_APP_NAME',
+      defaultValue: 'Deeksha',
+    ),
   );
 
   static ApiConfig api() {
