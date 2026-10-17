@@ -42,18 +42,17 @@ Connect your device via USB (enable USB debugging on Android / trust the Mac on 
 # List connected devices
 fvm flutter devices
 
-# Run the template app on a specific device
+# Run the template app on a specific device against the shared testing backend
 cd apps/template
-fvm flutter run -d <device-id> \
-  --dart-define=APP_ENV=development \
-  --dart-define=API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/
+fvm flutter run -d <device-id>
 
 # Or let Flutter pick the only connected device
 cd apps/template
-fvm flutter run \
-  --dart-define=APP_ENV=development \
-  --dart-define=API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/
+fvm flutter run
 ```
+
+The default API is `https://origin-production-5ab8.up.railway.app/api/v1/`.
+Set `--dart-define=API_BASE_URL=https://<host>/api/v1/` to use another backend.
 
 > For iOS you need Xcode installed and a valid Apple developer account configured.
 
@@ -82,8 +81,7 @@ cd apps/template
 
 # Debug APK
 fvm flutter build apk --debug \
-  --dart-define=APP_ENV=development \
-  --dart-define=API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/
+  --dart-define=APP_ENV=development
 
 # Release APK (requires signing config — see docs/flavors.md)
 fvm flutter build apk --release \
@@ -128,7 +126,7 @@ make analyze        # Static analysis
 make format         # Format all Dart code
 make test           # Run all tests
 make clean          # Clean build artifacts
-make run-template API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/
+make run-template
 make build-apk API_BASE_URL=https://<production-host>/api/v1/
 make build-aab API_BASE_URL=https://<production-host>/api/v1/
 make build-ipa API_BASE_URL=https://<production-host>/api/v1/

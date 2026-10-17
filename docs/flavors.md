@@ -2,7 +2,11 @@
 
 An **app** is a separate product. An **environment** is the backend that an app build connects to. Twilight currently uses two environments: development and production.
 
-`APP_ENV` and `API_BASE_URL` are compile-time settings passed with `--dart-define`. See [networking.md](networking.md) for local phone and production commands. The template reads them through `ApiConfig.fromBuildEnvironment()`; it no longer requires editing a source constant to change environments. Missing settings fail at startup, and a production URL must use HTTPS.
+`APP_ENV` and `API_BASE_URL` are compile-time settings passed with `--dart-define`.
+The template and Deeksha read them through `ApiConfig.fromBuildEnvironment()`.
+For initial testing, they default to `development` and the shared Railway API
+URL. Override either setting when switching backends; a production URL must use
+HTTPS. See [networking.md](networking.md) for local phone and production commands.
 
 The current choice is **one installed build per product**. Development and production use the same Android application ID and iOS bundle ID, so installing one build replaces the other. Native product flavors and extra Xcode schemes are unnecessary for this setup. The template scopes stored JWTs by environment and API host so replacing a development build with a production build does not reuse its login tokens.
 

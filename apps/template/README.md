@@ -1,11 +1,12 @@
 # Twilight template app
 
-Start Origin from `~/Desktop/origin` with `make up`, then run this app on a phone on the same Wi-Fi:
+Run this app against the shared testing backend:
 
 ```bash
-fvm flutter run \
-  --dart-define=APP_ENV=development \
-  --dart-define=API_BASE_URL=http://<computer-lan-ip>:8000/api/v1/
+fvm flutter run
 ```
 
-Replace `<computer-lan-ip>` with the computer's LAN IP address. The template needs both build settings; production needs an HTTPS URL. See [networking](../../docs/networking.md) and [creating an app](../../docs/creating-an-app.md) for the shared backend, token flow, and product setup.
+The default URL is `https://origin-production-5ab8.up.railway.app/api/v1/`.
+Pass `--dart-define=API_BASE_URL=https://<host>/api/v1/` to change it, and
+`--dart-define=APP_ENV=production` for a production build. See
+[networking](../../docs/networking.md) for local backend setup and token flow.

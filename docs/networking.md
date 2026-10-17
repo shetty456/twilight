@@ -4,7 +4,20 @@ Twilight apps use the single Django REST Framework backend in `~/Desktop/origin/
 
 ## Development and production
 
-Every app supplies two build settings: `APP_ENV` (`development` or `production`) and `API_BASE_URL` (the full `/api/v1/` URL). The shared `ApiConfig.fromBuildEnvironment()` reads them. A missing setting fails at startup; production requires HTTPS. The URL is normalized to a trailing slash.
+Apps using Origin default to `APP_ENV=development` and
+`API_BASE_URL=https://origin-production-5ab8.up.railway.app/api/v1/` for initial
+testing. The shared `ApiConfig.fromBuildEnvironment()` reads both settings.
+Override either with `--dart-define`; production requires HTTPS. The URL is
+normalized to a trailing slash. `nine_lamps` does not use Origin yet.
+
+```bash
+cd ~/Desktop/twilight/apps/template
+fvm flutter run
+```
+
+The hostname is temporary. Change the shared default in
+`packages/network/lib/src/api_config.dart` when the testing backend moves, or
+pass `--dart-define=API_BASE_URL=https://<new-host>/api/v1/` to a build.
 
 For a physical phone on the same Wi-Fi as the computer, start Origin from its own repository:
 
@@ -26,7 +39,7 @@ Replace `<computer-lan-ip>` with the computer's actual address, for example `192
 
 If Django itself is running on the **same phone** as the app, use `http://127.0.0.1:8000/api/v1/` instead. Origin's current Docker Compose setup runs on a computer; running Django on a phone requires a separate Python/server setup for that device.
 
-When the production server has a hostname, build with its HTTPS URL:
+For a production build, supply its HTTPS backend URL:
 
 ```bash
 fvm flutter build appbundle --release \
@@ -34,7 +47,10 @@ fvm flutter build appbundle --release \
   --dart-define=API_BASE_URL=https://<production-host>/api/v1/
 ```
 
-The production URL is still pending hosting; no placeholder hostname is baked into the app. Development and production each need their own backend data and deployment configuration when both are hosted. A build setting changes the destination; it does not create a second server or database.
+The Railway URL is currently a testing default, even though its hostname
+contains "production". Development and production each need their own backend
+data and deployment configuration when both are hosted. A build setting changes
+the destination; it does not create a second server or database.
 
 ## Shared client
 
