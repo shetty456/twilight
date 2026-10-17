@@ -10,13 +10,15 @@ class OriginPhoneAuthRepository {
   final DioClient _client;
   final AuthTokenStore _tokens;
 
-  Future<void> requestCode(String phone) async {
+  Future<String?> requestCode(String phone) async {
     try {
-      await _client.dio.post<dynamic>(
+      final response = await _client.dio.post<Map<String, dynamic>>(
         'auth/otp/phone/request/',
         data: {'phone': phone},
         options: Options(extra: {JwtRefreshInterceptor.skipAuthKey: true}),
       );
+      final code = response.data?['dev_otp'];
+      return code is String && RegExp(r'^\d{4}$').hasMatch(code) ? code : null;
     } on DioException catch (error) {
       throw mapDioException(error);
     }

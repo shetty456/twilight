@@ -25,6 +25,9 @@ require an HTTPS API URL.
 ## Backend contract
 
 - `POST auth/otp/phone/request/` with `{"phone":"+919876543210"}`
+  returns `{"detail":"OTP sent."}`. For development testing, the backend can
+  also return `dev_otp`; the app shows that code on the verification screen when
+  `APP_ENV=development`.
 - `POST auth/otp/phone/verify/` with `{"phone":"+919876543210","otp":"3821"}`
 - `GET stories/series/`
 - Series may include an absolute HTTP(S) `thumbnail` URL. The same artwork is
@@ -49,5 +52,5 @@ Origin's development sample stories contain text but no playable audio. The
 app presents those as reading episodes. Real audio playback requires a real
 episode with an `audio_key` and a reachable object-storage URL.
 
-Origin's current phone OTP handler creates a code but has no SMS delivery
-integration. A local tester needs access to the code until delivery is added.
+Origin has no SMS delivery integration yet. The hosted backend must enable its
+temporary OTP response setting for testers to see the code in Deeksha.

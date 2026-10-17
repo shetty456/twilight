@@ -1,6 +1,8 @@
+import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:network/network.dart';
 import 'package:ui/ui.dart';
 
 import '../../app.dart';
@@ -20,6 +22,7 @@ class _PhoneSignInPageState extends ConsumerState<PhoneSignInPage> {
   bool _codeSent = false;
   bool _busy = false;
   String? _error;
+  String? _developmentCode;
 
   @override
   void dispose() {
@@ -42,12 +45,21 @@ class _PhoneSignInPageState extends ConsumerState<PhoneSignInPage> {
     setState(() {
       _busy = true;
       _error = null;
+      _developmentCode = null;
     });
     try {
-      await ref
+      final code = await ref
           .read(phoneAuthRepositoryProvider)
           .requestCode(_phone.text.trim());
-      if (mounted) setState(() => _codeSent = true);
+      if (mounted) {
+        setState(() {
+          _codeSent = true;
+          _code.clear();
+          _developmentCode = ref.read(apiConfigProvider).environment.isDevelopment
+              ? code
+              : null;
+        });
+      }
     } catch (error) {
       if (mounted) setState(() => _error = _message(error));
     } finally {
@@ -128,9 +140,19 @@ class _PhoneSignInPageState extends ConsumerState<PhoneSignInPage> {
               const SizedBox(height: 12),
               if (_codeSent)
                 Text(
-                  'We sent a 4-digit code to ${_phone.text.trim()}.',
+                  'Enter the 4-digit code for ${_phone.text.trim()}.',
                   style: const TextStyle(color: VelaColors.plum),
                 ),
+              if (_codeSent && _developmentCode != null) ...[
+                const SizedBox(height: 12),
+                SelectableText(
+                  'Development OTP: $_developmentCode',
+                  style: const TextStyle(
+                    color: VelaColors.ink,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
               const SizedBox(height: 18),
               if (!_codeSent)
                 AppTextField(
@@ -183,6 +205,7 @@ class _PhoneSignInPageState extends ConsumerState<PhoneSignInPage> {
                             _codeSent = false;
                             _code.clear();
                             _error = null;
+                            _developmentCode = null;
                           }),
                     child: const Text('Change phone number'),
                   ),

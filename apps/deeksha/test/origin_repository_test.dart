@@ -54,7 +54,7 @@ void main() {
           : Map<String, dynamic>.from(options.data as Map);
       expect(body['phone'], '+919876543210');
       if (options.path == 'auth/otp/phone/request/') {
-        return _json({'detail': 'OTP sent.'});
+        return _json({'detail': 'OTP sent.', 'dev_otp': '3821'});
       }
       expect(options.path, 'auth/otp/phone/verify/');
       expect(body['otp'], '3821');
@@ -64,7 +64,7 @@ void main() {
       DioClient(config, dio: dio, tokenStore: tokens), tokens,
     );
 
-    await repository.requestCode('+919876543210');
+    expect(await repository.requestCode('+919876543210'), '3821');
     await repository.verifyCode('+919876543210', '3821');
 
     expect((await tokens.read())?.access, 'access-jwt');
