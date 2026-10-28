@@ -30,13 +30,16 @@ require an HTTPS API URL.
   `APP_ENV=development`.
 - `POST auth/otp/phone/verify/` with `{"phone":"+919876543210","otp":"3821"}`
 - `GET stories/series/`
-- Series may include an absolute HTTP(S) `thumbnail` URL. The same artwork is
+- Series include a `thumbnail` storage key and may include a signed HTTP(S)
+  `thumbnail_url`. The same artwork is
   shown on the featured card, story rows, saved stories, and episode screen.
   A gradient appears until artwork is available.
 - `GET stories/series/{series_id}/episodes/`
 - `GET stories/episodes/{episode_id}/media/` returns
   `{"episode_id":"...","audio_url":"https://...","expires_in":3600}`;
   `audio_url` and `expires_in` are `null` when audio is not ready.
+  Deeksha requests a fresh media URL each time playback starts, including
+  after a pause, because these URLs expire.
 - `POST stories/playback-progress/` with `episode_id` and `progress_seconds`
 
 The Home and My Library tabs also keep saved series and recent listening

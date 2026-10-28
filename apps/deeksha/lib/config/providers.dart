@@ -21,15 +21,22 @@ final storiesRepositoryProvider = Provider<OriginStoriesRepository>((ref) {
 
 final sessionProvider =
     StateNotifierProvider<SessionController, AsyncValue<bool>>((ref) {
-  return SessionController(ref.watch(phoneAuthRepositoryProvider));
+  return SessionController(ref.watch(phoneAuthRepositoryProvider), ref);
 });
 
 class SessionController extends StateNotifier<AsyncValue<bool>> {
-  SessionController(this._repository) : super(const AsyncLoading()) {
+  SessionController(this._repository, this._ref) : super(const AsyncLoading()) {
     restore();
   }
 
   final OriginPhoneAuthRepository _repository;
+  final Ref _ref;
+
+  void _refreshStories() {
+    _ref.invalidate(seriesProvider);
+    _ref.invalidate(episodesProvider);
+    _ref.invalidate(episodeMediaProvider);
+  }
 
   Future<void> restore() async {
     state = await AsyncValue.guard(_repository.hasSession);
@@ -37,6 +44,7 @@ class SessionController extends StateNotifier<AsyncValue<bool>> {
 
   Future<void> verify(String phone, String code) async {
     await _repository.verifyCode(phone, code);
+    _refreshStories();
     state = const AsyncData(true);
   }
 

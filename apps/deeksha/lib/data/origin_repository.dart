@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:auth/auth.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:network/network.dart';
 
 import '../stories/models/story_models.dart';
@@ -55,11 +58,21 @@ class OriginStoriesRepository {
   Future<List<StorySeries>> series() async {
     try {
       final response = await _client.dio.get<dynamic>('stories/series/');
+      if (kDebugMode) {
+        debugPrint(
+          'Origin GET stories/series/ ${response.statusCode}: ${jsonEncode(response.data)}',
+        );
+      }
       return _items(response.data)
           .map((item) => StorySeries.fromJson(item))
           .where((item) => item.status == 'active')
           .toList();
     } on DioException catch (error) {
+      if (kDebugMode) {
+        debugPrint(
+          'Origin GET stories/series/ ${error.response?.statusCode}: ${jsonEncode(error.response?.data)}',
+        );
+      }
       throw mapDioException(error);
     }
   }

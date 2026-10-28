@@ -36,9 +36,9 @@ class MyLibraryPage extends ConsumerWidget {
                     Text(
                       'Your stories live here',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: VelaColors.ink,
-                        fontWeight: FontWeight.w800,
-                      ),
+                            color: VelaColors.ink,
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -60,9 +60,9 @@ class MyLibraryPage extends ConsumerWidget {
                 Text(
                   'Continue listening',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: VelaColors.ink,
-                    fontWeight: FontWeight.w800,
-                  ),
+                        color: VelaColors.ink,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
                 const SizedBox(height: 12),
                 for (final listen in value.recent) ...[
@@ -84,9 +84,9 @@ class MyLibraryPage extends ConsumerWidget {
               Text(
                 'Saved series',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: VelaColors.ink,
-                  fontWeight: FontWeight.w800,
-                ),
+                      color: VelaColors.ink,
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
               const SizedBox(height: 12),
               if (value.saved.isEmpty)
@@ -104,7 +104,7 @@ class MyLibraryPage extends ConsumerWidget {
                       width: 64,
                       height: 64,
                       child: StoryArtwork(
-                        thumbnail: series.thumbnail,
+                        thumbnail: series.thumbnailUrl ?? series.thumbnail,
                         borderRadius: 10,
                       ),
                     ),

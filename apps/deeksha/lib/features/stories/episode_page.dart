@@ -66,14 +66,12 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
 
   Future<void> _saveLocal() => _completed
       ? Future.value()
-      : ref
-            .read(listenerLibraryProvider.notifier)
-            .recordListening(
-              series: widget.series,
-              episode: widget.episode,
-              position: _position,
-              duration: _duration,
-            );
+      : ref.read(listenerLibraryProvider.notifier).recordListening(
+            series: widget.series,
+            episode: widget.episode,
+            position: _position,
+            duration: _duration,
+          );
 
   @override
   void dispose() {
@@ -94,7 +92,7 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
     super.dispose();
   }
 
-  Future<void> _toggle(String url) async {
+  Future<void> _toggle() async {
     if (_busy) return;
     setState(() {
       _busy = true;
@@ -107,29 +105,40 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
         await ref
             .read(storiesRepositoryProvider)
             .saveProgress(widget.episode.id, _position.inMilliseconds / 1000);
-      } else if (_loadedUrl == url) {
-        if (_duration > Duration.zero && _position >= _duration) {
-          await _player.seek(Duration.zero);
+      } else {
+        // Origin signs media URLs for one hour. Fetch a fresh URL whenever
+        // playback starts so a page left open can still resume later.
+        final media =
+            await ref.read(storiesRepositoryProvider).media(widget.episode.id);
+        final url = media.audioUrl;
+        if (url == null || url.isEmpty) {
+          throw StateError('Audio is not ready.');
         }
         _completed = false;
-        await _player.resume();
-      } else {
-        _completed = false;
-        final saved = ref
-            .read(listenerLibraryProvider)
-            .valueOrNull
-            ?.recent
-            .where((item) => item.episode.id == widget.episode.id)
-            .firstOrNull;
-        await _player.play(UrlSource(url));
-        _loadedUrl = url;
-        if (saved != null && saved.positionSeconds > 0) {
-          final resumeAt = Duration(
-            milliseconds: (saved.positionSeconds * 1000).round(),
-          );
-          await _player.seek(resumeAt);
-          if (mounted) setState(() => _position = resumeAt);
-          _lastLocalSave = saved.positionSeconds.floor();
+        if (_loadedUrl == url) {
+          if (_duration > Duration.zero && _position >= _duration) {
+            await _player.seek(Duration.zero);
+          }
+          await _player.resume();
+        } else {
+          final saved = ref
+              .read(listenerLibraryProvider)
+              .valueOrNull
+              ?.recent
+              .where((item) => item.episode.id == widget.episode.id)
+              .firstOrNull;
+          final resumeAt = _position > Duration.zero
+              ? _position
+              : Duration(
+                  milliseconds: ((saved?.positionSeconds ?? 0) * 1000).round());
+          await _player.play(UrlSource(url));
+          _loadedUrl = url;
+          if (resumeAt > Duration.zero &&
+              (_duration == Duration.zero || resumeAt < _duration)) {
+            await _player.seek(resumeAt);
+            if (mounted) setState(() => _position = resumeAt);
+            _lastLocalSave = resumeAt.inSeconds;
+          }
         }
         await _saveLocal();
       }
@@ -147,8 +156,8 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
     final clamped = target < Duration.zero
         ? Duration.zero
         : _duration > Duration.zero && target > _duration
-        ? _duration
-        : target;
+            ? _duration
+            : target;
     await _player.seek(clamped);
   }
 
@@ -179,7 +188,7 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
           SizedBox(
             height: 240,
             child: StoryArtwork(
-              thumbnail: widget.series.thumbnail,
+              thumbnail: widget.series.thumbnailUrl ?? widget.series.thumbnail,
               borderRadius: 28,
             ),
           ),
@@ -197,9 +206,9 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
           Text(
             episode.title,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: VelaColors.ink,
-              fontWeight: FontWeight.w700,
-            ),
+                  color: VelaColors.ink,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
           const SizedBox(height: 24),
           Container(
@@ -239,14 +248,14 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
                     const SizedBox(height: 14),
                     Slider(
                       value: _position.inMilliseconds.toDouble().clamp(
-                        0,
-                        maximum,
-                      ),
+                            0,
+                            maximum,
+                          ),
                       max: maximum,
                       onChanged: _duration > Duration.zero
                           ? (value) => _player.seek(
-                              Duration(milliseconds: value.round()),
-                            )
+                                Duration(milliseconds: value.round()),
+                              )
                           : null,
                     ),
                     Row(
@@ -271,7 +280,7 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
                         const SizedBox(width: 22),
                         IconButton.filled(
                           tooltip: _playing ? 'Pause' : 'Play',
-                          onPressed: _busy ? null : () => _toggle(url),
+                          onPressed: _busy ? null : _toggle,
                           iconSize: 38,
                           constraints: const BoxConstraints(
                             minWidth: 72,

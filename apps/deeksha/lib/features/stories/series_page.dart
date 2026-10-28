@@ -18,7 +18,7 @@ class SeriesPage extends ConsumerWidget {
     final episodes = ref.watch(episodesProvider(series.id));
     final saved =
         ref.watch(listenerLibraryProvider).valueOrNull?.isSaved(series.id) ??
-        false;
+            false;
     return Scaffold(
       appBar: AppBar(title: const Text('Series')),
       body: ListView(
@@ -26,15 +26,17 @@ class SeriesPage extends ConsumerWidget {
         children: [
           SizedBox(
             height: 220,
-            child: StoryArtwork(thumbnail: series.thumbnail, borderRadius: 24),
+            child: StoryArtwork(
+                thumbnail: series.thumbnailUrl ?? series.thumbnail,
+                borderRadius: 24),
           ),
           const SizedBox(height: 24),
           Text(
             series.title,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: VelaColors.ink,
-              fontWeight: FontWeight.w700,
-            ),
+                  color: VelaColors.ink,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -71,9 +73,8 @@ class SeriesPage extends ConsumerWidget {
                   width: 56,
                   height: 56,
                   child: IconButton.filledTonal(
-                    tooltip: saved
-                        ? 'Remove from My Library'
-                        : 'Save to My Library',
+                    tooltip:
+                        saved ? 'Remove from My Library' : 'Save to My Library',
                     onPressed: () => ref
                         .read(listenerLibraryProvider.notifier)
                         .toggleSaved(series),
@@ -90,9 +91,8 @@ class SeriesPage extends ConsumerWidget {
           ] else ...[
             AppButton(
               label: saved ? 'Remove from My Library' : 'Save to My Library',
-              icon: saved
-                  ? Icons.bookmark_rounded
-                  : Icons.bookmark_add_outlined,
+              icon:
+                  saved ? Icons.bookmark_rounded : Icons.bookmark_add_outlined,
               variant: AppButtonVariant.secondary,
               expanded: true,
               onPressed: () => ref
@@ -135,8 +135,8 @@ class SeriesPage extends ConsumerWidget {
                                     episode.audioDuration! > 0
                                 ? '${(episode.audioDuration! / 60).ceil()} min listen'
                                 : episode.audioKey == null
-                                ? 'Read episode'
-                                : 'Listen to episode',
+                                    ? 'Read episode'
+                                    : 'Listen to episode',
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),

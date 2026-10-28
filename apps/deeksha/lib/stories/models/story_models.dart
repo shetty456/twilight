@@ -14,6 +14,7 @@ class StorySeries with _$StorySeries {
     String? description,
     String? source,
     String? thumbnail,
+    @JsonKey(name: 'thumbnail_url') String? thumbnailUrl,
     @Default('active') String status,
   }) = _StorySeries;
 

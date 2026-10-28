@@ -16,8 +16,9 @@ class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   void _openSeries(BuildContext context, StorySeries series) => Navigator.of(
-    context,
-  ).push(MaterialPageRoute<void>(builder: (_) => SeriesPage(series: series)));
+        context,
+      ).push(
+          MaterialPageRoute<void>(builder: (_) => SeriesPage(series: series)));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -118,9 +119,9 @@ class HomePage extends ConsumerWidget {
                     child: Text(
                       'Find a story for tonight',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: VelaColors.ink,
-                        fontWeight: FontWeight.w800,
-                      ),
+                            color: VelaColors.ink,
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -190,103 +191,105 @@ class _FeaturedStory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-    height: 420,
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(26),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          StoryArtwork(thumbnail: series.thumbnail, borderRadius: 0),
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0x22000000),
-                  Color(0x33000000),
-                  Color(0xE522172A),
-                ],
-                stops: [0.0, 0.4, 1.0],
+        height: 420,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(26),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              StoryArtwork(
+                  thumbnail: series.thumbnailUrl ?? series.thumbnail,
+                  borderRadius: 0),
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0x22000000),
+                      Color(0x33000000),
+                      Color(0xE522172A),
+                    ],
+                    stops: [0.0, 0.4, 1.0],
+                  ),
+                ),
               ),
-            ),
-          ),
-          Positioned(
-            left: 22,
-            right: 22,
-            bottom: 22,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'FEATURED STORY',
-                  style: TextStyle(
-                    color: Color(0xFFFFD9C2),
-                    letterSpacing: 1.8,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  series.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 29,
-                    height: 1.1,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  series.description?.isNotEmpty == true
-                      ? series.description!
-                      : 'A story waiting for you.',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFFF7EDE9),
-                    height: 1.35,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Row(
+              Positioned(
+                left: 22,
+                right: 22,
+                bottom: 22,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: AppButton(
-                        label: 'Explore story',
-                        icon: Icons.play_arrow_rounded,
-                        expanded: true,
-                        onPressed: onOpen,
+                    const Text(
+                      'FEATURED STORY',
+                      style: TextStyle(
+                        color: Color(0xFFFFD9C2),
+                        letterSpacing: 1.8,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    SizedBox(
-                      width: 56,
-                      height: 56,
-                      child: IconButton.filledTonal(
-                        tooltip: saved
-                            ? 'Remove from My Library'
-                            : 'Save to My Library',
-                        onPressed: onSave,
-                        icon: Icon(
-                          saved
-                              ? Icons.bookmark_rounded
-                              : Icons.bookmark_add_outlined,
-                        ),
+                    const SizedBox(height: 8),
+                    Text(
+                      series.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 29,
+                        height: 1.1,
+                        fontWeight: FontWeight.w800,
                       ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      series.description?.isNotEmpty == true
+                          ? series.description!
+                          : 'A story waiting for you.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFFF7EDE9),
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AppButton(
+                            label: 'Explore story',
+                            icon: Icons.play_arrow_rounded,
+                            expanded: true,
+                            onPressed: onOpen,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        SizedBox(
+                          width: 56,
+                          height: 56,
+                          child: IconButton.filledTonal(
+                            tooltip: saved
+                                ? 'Remove from My Library'
+                                : 'Save to My Library',
+                            onPressed: onSave,
+                            icon: Icon(
+                              saved
+                                  ? Icons.bookmark_rounded
+                                  : Icons.bookmark_add_outlined,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -295,15 +298,15 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Text(
-      title,
-      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-        color: VelaColors.ink,
-        fontWeight: FontWeight.w800,
-      ),
-    ),
-  );
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Text(
+          title,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: VelaColors.ink,
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+      );
 }
 
 class _HomeNotice extends StatelessWidget {
@@ -312,11 +315,11 @@ class _HomeNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(
-      color: VelaColors.blush,
-      borderRadius: BorderRadius.circular(18),
-    ),
-    child: Text(message, style: const TextStyle(color: VelaColors.ink)),
-  );
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: VelaColors.blush,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Text(message, style: const TextStyle(color: VelaColors.ink)),
+      );
 }

@@ -43,8 +43,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                       (item) =>
                           item.title.toLowerCase().contains(query) ||
                           (item.description ?? '').toLowerCase().contains(
-                            query,
-                          ),
+                                query,
+                              ),
                     )
                     .toList();
                 if (results.isEmpty) {
@@ -87,7 +87,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                             children: [
                               Expanded(
                                 child: StoryArtwork(
-                                  thumbnail: item.thumbnail,
+                                  thumbnail:
+                                      item.thumbnailUrl ?? item.thumbnail,
                                   borderRadius: 14,
                                 ),
                               ),

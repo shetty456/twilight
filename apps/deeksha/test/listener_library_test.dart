@@ -29,7 +29,8 @@ void main() {
   const series = StorySeries(
     id: 'series-1',
     title: 'Evening Stories',
-    thumbnail: 'https://example.com/art.jpg',
+    thumbnail: 'stories/images/art.jpg',
+    thumbnailUrl: 'https://example.com/art.jpg?signature=example',
   );
   const episode = StoryEpisode(
     id: 'episode-1',
@@ -58,6 +59,7 @@ void main() {
       final library = restored.state.valueOrNull!;
       expect(library.isSaved(series.id), isTrue);
       expect(library.saved.single.thumbnail, series.thumbnail);
+      expect(library.saved.single.thumbnailUrl, series.thumbnailUrl);
       expect(library.recent.single.episode.id, episode.id);
       expect(library.recent.single.positionSeconds, 42);
 
