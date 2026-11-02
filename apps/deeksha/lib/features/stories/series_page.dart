@@ -18,25 +18,26 @@ class SeriesPage extends ConsumerWidget {
     final episodes = ref.watch(episodesProvider(series.id));
     final saved =
         ref.watch(listenerLibraryProvider).valueOrNull?.isSaved(series.id) ??
-            false;
+        false;
     return Scaffold(
-      appBar: AppBar(title: const Text('Series')),
+      appBar: AppBar(title: const Text('Story details')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
         children: [
           SizedBox(
-            height: 220,
+            height: 280,
             child: StoryArtwork(
-                thumbnail: series.thumbnailUrl ?? series.thumbnail,
-                borderRadius: 24),
+              thumbnail: series.thumbnailUrl ?? series.thumbnail,
+              borderRadius: 24,
+            ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Text(
             series.title,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: VelaColors.ink,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: VelaColors.ink,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -73,8 +74,9 @@ class SeriesPage extends ConsumerWidget {
                   width: 56,
                   height: 56,
                   child: IconButton.filledTonal(
-                    tooltip:
-                        saved ? 'Remove from My Library' : 'Save to My Library',
+                    tooltip: saved
+                        ? 'Remove from My Library'
+                        : 'Save to My Library',
                     onPressed: () => ref
                         .read(listenerLibraryProvider.notifier)
                         .toggleSaved(series),
@@ -91,8 +93,9 @@ class SeriesPage extends ConsumerWidget {
           ] else ...[
             AppButton(
               label: saved ? 'Remove from My Library' : 'Save to My Library',
-              icon:
-                  saved ? Icons.bookmark_rounded : Icons.bookmark_add_outlined,
+              icon: saved
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_add_outlined,
               variant: AppButtonVariant.secondary,
               expanded: true,
               onPressed: () => ref
@@ -115,36 +118,45 @@ class SeriesPage extends ConsumerWidget {
                 ? [const Text('No episodes are published yet.')]
                 : [
                     for (final episode in items) ...[
-                      Card(
+                      Material(
+                        color: VelaColors.surface,
+                        borderRadius: BorderRadius.circular(18),
                         child: ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 10,
                           ),
-                          leading: CircleAvatar(
-                            backgroundColor: VelaColors.blush,
-                            foregroundColor: VelaColors.plum,
-                            child: Text('${episode.episodeNumber}'),
+                          leading: SizedBox(
+                            width: 58,
+                            height: 58,
+                            child: StoryArtwork(
+                              thumbnail:
+                                  series.thumbnailUrl ?? series.thumbnail,
+                              borderRadius: 10,
+                            ),
                           ),
                           title: Text(
-                            episode.title,
+                            '${episode.episodeNumber}. ${episode.title}',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(fontWeight: FontWeight.w700),
                           ),
                           subtitle: Text(
                             episode.audioDuration != null &&
                                     episode.audioDuration! > 0
-                                ? '${(episode.audioDuration! / 60).ceil()} min listen'
+                                ? '${(episode.audioDuration! / 60).ceil()} min'
                                 : episode.audioKey == null
-                                    ? 'Read episode'
-                                    : 'Listen to episode',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                                ? 'Read episode'
+                                : 'Listen',
                           ),
                           trailing: Icon(
                             episode.audioKey == null
                                 ? Icons.menu_book_rounded
                                 : Icons.play_circle_rounded,
-                            color: VelaColors.plum,
+                            color: VelaColors.apricot,
                           ),
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute<void>(

@@ -13,35 +13,36 @@ class StoryPosterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        width: 150,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: onTap,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 190,
-                width: 150,
-                child: StoryArtwork(
-                    thumbnail: series.thumbnailUrl ?? series.thumbnail,
-                    borderRadius: 16),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                series.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: VelaColors.ink,
-                  fontWeight: FontWeight.w700,
-                  height: 1.2,
-                ),
-              ),
-            ],
+    width: 150,
+    child: InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: 190,
+            width: 150,
+            child: StoryArtwork(
+              thumbnail: series.thumbnailUrl ?? series.thumbnail,
+              borderRadius: 16,
+            ),
           ),
-        ),
-      );
+          const SizedBox(height: 8),
+          Text(
+            series.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: VelaColors.ink,
+              fontWeight: FontWeight.w700,
+              height: 1.2,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class RecentListenCard extends StatelessWidget {
@@ -64,7 +65,7 @@ class RecentListenCard extends StatelessWidget {
     return SizedBox(
       width: width,
       child: Material(
-        color: Colors.white,
+        color: VelaColors.surface,
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
           borderRadius: BorderRadius.circular(18),

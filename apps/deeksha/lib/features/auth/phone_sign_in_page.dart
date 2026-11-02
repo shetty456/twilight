@@ -55,7 +55,8 @@ class _PhoneSignInPageState extends ConsumerState<PhoneSignInPage> {
         setState(() {
           _codeSent = true;
           _code.clear();
-          _developmentCode = ref.read(apiConfigProvider).environment.isDevelopment
+          _developmentCode =
+              ref.read(apiConfigProvider).environment.isDevelopment
               ? code
               : null;
         });
@@ -105,15 +106,15 @@ class _PhoneSignInPageState extends ConsumerState<PhoneSignInPage> {
                 height: 64,
                 decoration: const BoxDecoration(
                   color: VelaColors.blush,
-                  borderRadius: BorderRadius.all(Radius.circular(22)),
+                  shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.spa_outlined,
+                  Icons.nightlight_round,
                   size: 34,
-                  color: VelaColors.plum,
+                  color: VelaColors.apricot,
                 ),
               ),
-              const SizedBox(height: 38),
+              const SizedBox(height: 32),
               Text(
                 name,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -123,13 +124,13 @@ class _PhoneSignInPageState extends ConsumerState<PhoneSignInPage> {
               ),
               const SizedBox(height: 10),
               Text(
-                'A gentle place for stories, rest, and the moments in between.',
+                'Stories for a quieter moment.',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: VelaColors.plum,
                   height: 1.5,
                 ),
               ),
-              const SizedBox(height: 52),
+              const SizedBox(height: 48),
               Text(
                 _codeSent ? 'Enter your code' : 'Continue with your phone',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(

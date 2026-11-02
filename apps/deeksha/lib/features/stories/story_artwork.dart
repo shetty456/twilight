@@ -34,11 +34,24 @@ class _ArtworkFallback extends StatelessWidget {
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [VelaColors.plum, Color(0xFFB77F89), VelaColors.apricot],
+        colors: [Color(0xFF50344E), Color(0xFF251C38), Color(0xFF121C32)],
       ),
     ),
-    child: Center(
-      child: Icon(Icons.graphic_eq_rounded, size: 54, color: Color(0xCCFFF3EA)),
+    child: Stack(
+      alignment: Alignment.center,
+      children: [
+        Positioned(
+          top: 20,
+          right: 28,
+          child: Icon(Icons.auto_awesome, color: Color(0x88F0BD9D), size: 24),
+        ),
+        Positioned(
+          bottom: 36,
+          left: 28,
+          child: Icon(Icons.star_rounded, color: Color(0x77F0BD9D), size: 16),
+        ),
+        Icon(Icons.nightlight_round, size: 78, color: VelaColors.apricot),
+      ],
     ),
   );
 }

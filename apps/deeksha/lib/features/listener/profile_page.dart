@@ -64,7 +64,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               children: [
                 const CircleAvatar(
                   radius: 30,
-                  backgroundColor: Colors.white,
+                  backgroundColor: VelaColors.surface,
                   child: Icon(
                     Icons.person_outline_rounded,
                     color: VelaColors.plum,
@@ -98,7 +98,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           ),
           const SizedBox(height: 12),
           Material(
-            color: Colors.white,
+            color: VelaColors.surface,
             borderRadius: BorderRadius.circular(16),
             child: ListTile(
               leading: const Icon(Icons.logout_rounded, color: VelaColors.plum),

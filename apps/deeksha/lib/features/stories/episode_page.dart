@@ -66,12 +66,14 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
 
   Future<void> _saveLocal() => _completed
       ? Future.value()
-      : ref.read(listenerLibraryProvider.notifier).recordListening(
-            series: widget.series,
-            episode: widget.episode,
-            position: _position,
-            duration: _duration,
-          );
+      : ref
+            .read(listenerLibraryProvider.notifier)
+            .recordListening(
+              series: widget.series,
+              episode: widget.episode,
+              position: _position,
+              duration: _duration,
+            );
 
   @override
   void dispose() {
@@ -108,8 +110,9 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
       } else {
         // Origin signs media URLs for one hour. Fetch a fresh URL whenever
         // playback starts so a page left open can still resume later.
-        final media =
-            await ref.read(storiesRepositoryProvider).media(widget.episode.id);
+        final media = await ref
+            .read(storiesRepositoryProvider)
+            .media(widget.episode.id);
         final url = media.audioUrl;
         if (url == null || url.isEmpty) {
           throw StateError('Audio is not ready.');
@@ -130,7 +133,8 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
           final resumeAt = _position > Duration.zero
               ? _position
               : Duration(
-                  milliseconds: ((saved?.positionSeconds ?? 0) * 1000).round());
+                  milliseconds: ((saved?.positionSeconds ?? 0) * 1000).round(),
+                );
           await _player.play(UrlSource(url));
           _loadedUrl = url;
           if (resumeAt > Duration.zero &&
@@ -156,8 +160,8 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
     final clamped = target < Duration.zero
         ? Duration.zero
         : _duration > Duration.zero && target > _duration
-            ? _duration
-            : target;
+        ? _duration
+        : target;
     await _player.seek(clamped);
   }
 
@@ -206,15 +210,15 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
           Text(
             episode.title,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: VelaColors.ink,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: VelaColors.ink,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: VelaColors.surface,
               borderRadius: BorderRadius.circular(24),
             ),
             child: media.when(
@@ -248,14 +252,14 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
                     const SizedBox(height: 14),
                     Slider(
                       value: _position.inMilliseconds.toDouble().clamp(
-                            0,
-                            maximum,
-                          ),
+                        0,
+                        maximum,
+                      ),
                       max: maximum,
                       onChanged: _duration > Duration.zero
                           ? (value) => _player.seek(
-                                Duration(milliseconds: value.round()),
-                              )
+                              Duration(milliseconds: value.round()),
+                            )
                           : null,
                     ),
                     Row(

@@ -36,9 +36,9 @@ class MyLibraryPage extends ConsumerWidget {
                     Text(
                       'Your stories live here',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: VelaColors.ink,
-                            fontWeight: FontWeight.w800,
-                          ),
+                        color: VelaColors.ink,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -60,9 +60,9 @@ class MyLibraryPage extends ConsumerWidget {
                 Text(
                   'Continue listening',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: VelaColors.ink,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    color: VelaColors.ink,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 for (final listen in value.recent) ...[
@@ -84,9 +84,9 @@ class MyLibraryPage extends ConsumerWidget {
               Text(
                 'Saved series',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: VelaColors.ink,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: VelaColors.ink,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 12),
               if (value.saved.isEmpty)
@@ -94,48 +94,68 @@ class MyLibraryPage extends ConsumerWidget {
                   'Tap the bookmark on a series to save it here.',
                   style: TextStyle(color: VelaColors.plum),
                 ),
-              for (final series in value.saved) ...[
-                Material(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(10),
-                    leading: SizedBox(
-                      width: 64,
-                      height: 64,
-                      child: StoryArtwork(
-                        thumbnail: series.thumbnailUrl ?? series.thumbnail,
-                        borderRadius: 10,
-                      ),
-                    ),
-                    title: Text(
-                      series.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: VelaColors.ink,
-                      ),
-                    ),
-                    trailing: IconButton(
-                      tooltip: 'Remove ${series.title} from My Library',
-                      onPressed: () => ref
-                          .read(listenerLibraryProvider.notifier)
-                          .toggleSaved(series),
-                      icon: const Icon(
-                        Icons.bookmark_rounded,
-                        color: VelaColors.plum,
-                      ),
-                    ),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => SeriesPage(series: series),
-                      ),
-                    ),
+              if (value.saved.isNotEmpty)
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: value.saved.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.72,
                   ),
+                  itemBuilder: (context, index) {
+                    final series = value.saved[index];
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(18),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => SeriesPage(series: series),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                StoryArtwork(
+                                  thumbnail:
+                                      series.thumbnailUrl ?? series.thumbnail,
+                                  borderRadius: 16,
+                                ),
+                                Positioned(
+                                  top: 7,
+                                  right: 7,
+                                  child: IconButton.filledTonal(
+                                    tooltip:
+                                        'Remove ${series.title} from My Library',
+                                    onPressed: () => ref
+                                        .read(listenerLibraryProvider.notifier)
+                                        .toggleSaved(series),
+                                    icon: const Icon(Icons.bookmark_rounded),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            series.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: VelaColors.ink,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
-                const SizedBox(height: 10),
-              ],
             ],
           );
         },

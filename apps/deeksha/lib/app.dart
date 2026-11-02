@@ -7,11 +7,13 @@ import 'features/auth/phone_sign_in_page.dart';
 import 'features/listener/listener_shell.dart';
 
 abstract final class VelaColors {
-  static const ink = Color(0xFF322536);
-  static const plum = Color(0xFF75516E);
-  static const blush = Color(0xFFF8EDEB);
-  static const cream = Color(0xFFFFFAF6);
-  static const apricot = Color(0xFFE7B593);
+  static const ink = Color(0xFFF7EAF0);
+  static const plum = Color(0xFFBDAEB8);
+  static const blush = Color(0xFF302530);
+  static const cream = Color(0xFF19121D);
+  static const surface = Color(0xFF281E2A);
+  static const apricot = Color(0xFFF0BD9D);
+  static const onApricot = Color(0xFF3B2729);
 }
 
 class VelaFmApp extends ConsumerWidget {
@@ -20,15 +22,26 @@ class VelaFmApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final title = ref.watch(productNameProvider);
-    final theme = AppTheme.light(primaryColor: VelaColors.plum).copyWith(
+    final base = AppTheme.dark(primaryColor: VelaColors.apricot);
+    final theme = base.copyWith(
+      colorScheme: base.colorScheme.copyWith(
+        primary: VelaColors.apricot,
+        onPrimary: VelaColors.onApricot,
+        surface: VelaColors.cream,
+        onSurface: VelaColors.ink,
+        surfaceContainerHighest: VelaColors.surface,
+        onSurfaceVariant: VelaColors.plum,
+        outline: const Color(0xFF594654),
+      ),
       scaffoldBackgroundColor: VelaColors.cream,
       appBarTheme: const AppBarTheme(
         backgroundColor: VelaColors.cream,
         foregroundColor: VelaColors.ink,
         elevation: 0,
+        centerTitle: false,
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: Colors.white,
+        backgroundColor: VelaColors.cream,
         indicatorColor: VelaColors.blush,
         labelTextStyle: WidgetStateProperty.all(
           const TextStyle(
@@ -36,6 +49,42 @@ class VelaFmApp extends ConsumerWidget {
             fontSize: 12,
             fontWeight: FontWeight.w700,
           ),
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: VelaColors.surface,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: VelaColors.surface,
+        hintStyle: const TextStyle(color: VelaColors.plum),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 18,
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: VelaColors.apricot,
+          foregroundColor: VelaColors.onApricot,
+          minimumSize: const Size(0, 56),
+          shape: const StadiumBorder(),
+          textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: VelaColors.apricot,
+          side: const BorderSide(color: Color(0xFF6A4C5A)),
+          minimumSize: const Size(0, 56),
+          shape: const StadiumBorder(),
         ),
       ),
     );
