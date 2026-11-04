@@ -13,7 +13,8 @@ abstract final class VelaColors {
   static const cream = Color(0xFF19121D);
   static const surface = Color(0xFF281E2A);
   static const apricot = Color(0xFFF0BD9D);
-  static const onApricot = Color(0xFF3B2729);
+  static const action = Color(0xFFD62B4C);
+  static const onAction = Colors.white;
 }
 
 class VelaFmApp extends ConsumerWidget {
@@ -22,11 +23,11 @@ class VelaFmApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final title = ref.watch(productNameProvider);
-    final base = AppTheme.dark(primaryColor: VelaColors.apricot);
+    final base = AppTheme.dark(primaryColor: VelaColors.action);
     final theme = base.copyWith(
       colorScheme: base.colorScheme.copyWith(
-        primary: VelaColors.apricot,
-        onPrimary: VelaColors.onApricot,
+        primary: VelaColors.action,
+        onPrimary: VelaColors.onAction,
         surface: VelaColors.cream,
         onSurface: VelaColors.ink,
         surfaceContainerHighest: VelaColors.surface,
@@ -63,7 +64,15 @@ class VelaFmApp extends ConsumerWidget {
         hintStyle: const TextStyle(color: VelaColors.plum),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: const BorderSide(color: Color(0xFF8A6C7E)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF8A6C7E)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: VelaColors.action, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 18,
@@ -72,8 +81,8 @@ class VelaFmApp extends ConsumerWidget {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: VelaColors.apricot,
-          foregroundColor: VelaColors.onApricot,
+          backgroundColor: VelaColors.action,
+          foregroundColor: VelaColors.onAction,
           minimumSize: const Size(0, 56),
           padding: const EdgeInsets.symmetric(horizontal: 20),
           shape: RoundedRectangleBorder(
