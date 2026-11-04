@@ -75,8 +75,11 @@ class VelaFmApp extends ConsumerWidget {
           backgroundColor: VelaColors.apricot,
           foregroundColor: VelaColors.onApricot,
           minimumSize: const Size(0, 56),
-          shape: const StadiumBorder(),
-          textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          ),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -84,7 +87,11 @@ class VelaFmApp extends ConsumerWidget {
           foregroundColor: VelaColors.apricot,
           side: const BorderSide(color: Color(0xFF6A4C5A)),
           minimumSize: const Size(0, 56),
-          shape: const StadiumBorder(),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          ),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
         ),
       ),
     );
