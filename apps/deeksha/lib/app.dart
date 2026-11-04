@@ -107,9 +107,33 @@ class _AuthGate extends ConsumerWidget {
         .when(
           data: (signedIn) =>
               signedIn ? const ListenerShell() : const PhoneSignInPage(),
-          loading: () =>
-              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          loading: () => const _SessionLoading(),
           error: (error, _) => PhoneSignInPage(startupError: error.toString()),
         );
   }
+}
+
+class _SessionLoading extends StatelessWidget {
+  const _SessionLoading();
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+    body: SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(28, 36, 28, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppSkeletonBox(width: 64, height: 64, radius: 32),
+            SizedBox(height: 32),
+            AppSkeletonLines(width: 170),
+            SizedBox(height: 12),
+            AppSkeletonLines(width: 240, lines: 2),
+            SizedBox(height: 42),
+            AppSkeletonBox(width: double.infinity, height: 56, radius: 12),
+          ],
+        ),
+      ),
+    ),
+  );
 }

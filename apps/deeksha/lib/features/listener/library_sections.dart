@@ -128,10 +128,44 @@ class LibrarySections extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppSkeletonLines(width: 130),
+          SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _SavedCardSkeleton()),
+              SizedBox(width: 12),
+              Expanded(child: _SavedCardSkeleton()),
+            ],
+          ),
+        ],
+      ),
       error: (_, __) => const Text('Could not open your library.'),
     );
   }
+}
+
+class _SavedCardSkeleton extends StatelessWidget {
+  const _SavedCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) => const Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      AspectRatio(
+        aspectRatio: 4 / 5,
+        child: AppSkeletonBox(
+          width: double.infinity,
+          height: double.infinity,
+          radius: 10,
+        ),
+      ),
+      SizedBox(height: 8),
+      AppSkeletonLines(width: 95),
+    ],
+  );
 }
 
 class _SectionHeading extends StatelessWidget {

@@ -56,10 +56,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final library = ref.watch(listenerLibraryProvider).valueOrNull;
-    final phone = ref.watch(signedInPhoneProvider).valueOrNull;
-    final savedCount = library?.saved.length ?? 0;
-    final recentCount = library?.recent.length ?? 0;
+    final libraryState = ref.watch(listenerLibraryProvider);
+    final library = libraryState.valueOrNull;
+    final phoneState = ref.watch(signedInPhoneProvider);
+    final savedCount = libraryState.isLoading
+        ? null
+        : library?.saved.length ?? 0;
+    final recentCount = libraryState.isLoading
+        ? null
+        : library?.recent.length ?? 0;
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -68,7 +73,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             _ProfileHeader(
               savedCount: savedCount,
               recentCount: recentCount,
-              phone: phone,
+              phone: phoneState.valueOrNull,
+              phoneLoading: phoneState.isLoading,
               completion: widget.profileCompletion,
             ),
             const SizedBox(height: 24),
@@ -91,14 +97,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   foregroundColor: VelaColors.ink,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-                icon: _busy
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.logout_rounded, size: 20),
-                label: const Text('Sign out'),
+                icon: const Icon(Icons.logout_rounded, size: 20),
+                label: Text(_busy ? 'Signing out…' : 'Sign out'),
               ),
             ),
             const SizedBox(height: 12),
@@ -118,12 +118,14 @@ class _ProfileHeader extends StatelessWidget {
     required this.savedCount,
     required this.recentCount,
     required this.phone,
+    required this.phoneLoading,
     this.completion,
   });
 
-  final int savedCount;
-  final int recentCount;
+  final int? savedCount;
+  final int? recentCount;
   final String? phone;
+  final bool phoneLoading;
   final double? completion;
 
   @override
@@ -154,11 +156,14 @@ class _ProfileHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          phone ?? 'Phone number appears after your next sign-in',
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: VelaColors.plum),
-        ),
+        if (phoneLoading)
+          const AppSkeletonLines(width: 174)
+        else
+          Text(
+            phone ?? 'Phone number appears after your next sign-in',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: VelaColors.plum),
+          ),
         const SizedBox(height: 20),
         Row(
           children: [
@@ -204,19 +209,22 @@ class _ProfileHeader extends StatelessWidget {
 class _ProfileStat extends StatelessWidget {
   const _ProfileStat({required this.count, required this.label});
 
-  final int count;
+  final int? count;
   final String label;
 
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      Text(
-        '$count',
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-          color: VelaColors.ink,
-          fontWeight: FontWeight.w800,
+      if (count == null)
+        const AppSkeletonBox(width: 24, height: 26, radius: 5)
+      else
+        Text(
+          '$count',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: VelaColors.ink,
+            fontWeight: FontWeight.w800,
+          ),
         ),
-      ),
       const SizedBox(height: 2),
       Text(label, style: const TextStyle(color: VelaColors.plum, fontSize: 12)),
     ],

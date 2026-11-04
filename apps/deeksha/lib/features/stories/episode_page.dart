@@ -9,6 +9,7 @@ import '../../config/providers.dart';
 import '../../stories/models/story_models.dart';
 import '../listener/listener_library.dart';
 import 'story_artwork.dart';
+import 'story_loading.dart';
 
 class EpisodePage extends ConsumerStatefulWidget {
   const EpisodePage({super.key, required this.episode, required this.series});
@@ -317,7 +318,7 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
                   ],
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const AudioPlayerSkeleton(),
               error: (_, __) => Row(
                 children: [
                   const Expanded(

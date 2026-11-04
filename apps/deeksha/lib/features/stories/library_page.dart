@@ -10,6 +10,7 @@ import 'episode_page.dart';
 import 'series_page.dart';
 import 'story_artwork.dart';
 import 'story_cards.dart';
+import 'story_loading.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -127,14 +128,7 @@ class HomePage extends ConsumerWidget {
                     const SizedBox(height: 32),
                   ];
                 },
-                loading: () => const [
-                  Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(48),
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-                ],
+                loading: () => const [StoryHomeSkeleton()],
                 error: (_, __) => [
                   Padding(
                     padding: const EdgeInsets.all(24),

@@ -8,6 +8,7 @@ import '../../stories/models/story_models.dart';
 import '../listener/listener_library.dart';
 import 'episode_page.dart';
 import 'story_artwork.dart';
+import 'story_loading.dart';
 
 class SeriesPage extends ConsumerWidget {
   const SeriesPage({super.key, required this.series});
@@ -169,14 +170,7 @@ class SeriesPage extends ConsumerWidget {
                       const SizedBox(height: 9),
                     ],
                   ],
-            loading: () => [
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(28),
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-            ],
+            loading: () => [const EpisodeListSkeleton()],
             error: (error, _) => [
               const Text('Could not load episodes.'),
               AppButton(

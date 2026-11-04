@@ -6,6 +6,7 @@ import '../../app.dart';
 import '../../config/providers.dart';
 import 'series_page.dart';
 import 'story_artwork.dart';
+import 'story_loading.dart';
 
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
@@ -115,7 +116,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const StoryGridSkeleton(),
                 error: (_, __) => Center(
                   child: AppButton(
                     label: 'Try again',
