@@ -21,7 +21,11 @@ final storiesRepositoryProvider = Provider<OriginStoriesRepository>((ref) {
 
 final sessionProvider =
     StateNotifierProvider<SessionController, AsyncValue<bool>>((ref) {
-  return SessionController(ref.watch(phoneAuthRepositoryProvider), ref);
+      return SessionController(ref.watch(phoneAuthRepositoryProvider), ref);
+    });
+
+final signedInPhoneProvider = FutureProvider<String?>((ref) {
+  return ref.watch(phoneAuthRepositoryProvider).signedInPhone();
 });
 
 class SessionController extends StateNotifier<AsyncValue<bool>> {
@@ -45,11 +49,13 @@ class SessionController extends StateNotifier<AsyncValue<bool>> {
   Future<void> verify(String phone, String code) async {
     await _repository.verifyCode(phone, code);
     _refreshStories();
+    _ref.invalidate(signedInPhoneProvider);
     state = const AsyncData(true);
   }
 
   Future<void> signOut() async {
     await _repository.signOut();
+    _ref.invalidate(signedInPhoneProvider);
     state = const AsyncData(false);
   }
 }
@@ -58,13 +64,17 @@ final seriesProvider = FutureProvider<List<StorySeries>>((ref) {
   return ref.watch(storiesRepositoryProvider).series();
 });
 
-final episodesProvider =
-    FutureProvider.family<List<StoryEpisode>, String>((ref, seriesId) {
+final episodesProvider = FutureProvider.family<List<StoryEpisode>, String>((
+  ref,
+  seriesId,
+) {
   return ref.watch(storiesRepositoryProvider).episodes(seriesId);
 });
 
-final episodeMediaProvider =
-    FutureProvider.family<EpisodeMedia, String>((ref, episodeId) {
+final episodeMediaProvider = FutureProvider.family<EpisodeMedia, String>((
+  ref,
+  episodeId,
+) {
   return ref.watch(storiesRepositoryProvider).media(episodeId);
 });
 
@@ -72,8 +82,8 @@ List<Override> buildProviderOverrides() {
   final config = ProductConfig.api();
   return [
     apiConfigProvider.overrideWithValue(config),
-    authTokenStoreProvider.overrideWithValue(SecureAuthTokenStore(
-      key: ProductConfig.tokenKey(config),
-    )),
+    authTokenStoreProvider.overrideWithValue(
+      SecureAuthTokenStore(key: ProductConfig.tokenKey(config)),
+    ),
   ];
 }

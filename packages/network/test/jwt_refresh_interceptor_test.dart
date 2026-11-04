@@ -54,7 +54,11 @@ void main() {
 
   test('rotates tokens and retries a 401 once', () async {
     final store = _MemoryTokens()
-      ..tokens = const AuthTokens(access: 'old', refresh: 'old-refresh');
+      ..tokens = const AuthTokens(
+        access: 'old',
+        refresh: 'old-refresh',
+        phone: '+919876543210',
+      );
     var refreshes = 0;
     var protectedCalls = 0;
     final dio = Dio(BaseOptions(baseUrl: config.baseUrl));
@@ -86,6 +90,7 @@ void main() {
     expect(protectedCalls, 2);
     expect(refreshes, 1);
     expect((await store.read())?.refresh, 'new-refresh');
+    expect((await store.read())?.phone, '+919876543210');
   });
 
   test('invalid refresh clears the stored pair and does not loop', () async {

@@ -40,13 +40,17 @@ class OriginPhoneAuthRepository {
       if (access is! String || refresh is! String) {
         throw const FormatException('The server did not return a session.');
       }
-      await _tokens.write(AuthTokens(access: access, refresh: refresh));
+      await _tokens.write(
+        AuthTokens(access: access, refresh: refresh, phone: phone),
+      );
     } on DioException catch (error) {
       throw mapDioException(error);
     }
   }
 
   Future<bool> hasSession() async => await _tokens.read() != null;
+
+  Future<String?> signedInPhone() async => (await _tokens.read())?.phone;
 
   Future<void> signOut() => _tokens.clear();
 }
@@ -119,8 +123,8 @@ class OriginStoriesRepository {
     final items = payload is List
         ? payload
         : payload is Map<String, dynamic> && payload['results'] is List
-            ? payload['results'] as List<dynamic>
-            : throw const FormatException('Unexpected stories response.');
+        ? payload['results'] as List<dynamic>
+        : throw const FormatException('Unexpected stories response.');
     return items.map((item) => Map<String, dynamic>.from(item as Map)).toList();
   }
 }

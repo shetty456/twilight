@@ -24,19 +24,23 @@ class _Adapter implements HttpClientAdapter {
   final ResponseBody Function(RequestOptions) respond;
 
   @override
-  Future<ResponseBody> fetch(RequestOptions options,
-      Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async =>
-      respond(options);
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async => respond(options);
 
   @override
   void close({bool force = false}) {}
 }
 
 ResponseBody _json(Object body) => ResponseBody.fromString(
-      jsonEncode(body),
-      200,
-      headers: {Headers.contentTypeHeader: ['application/json']},
-    );
+  jsonEncode(body),
+  200,
+  headers: {
+    Headers.contentTypeHeader: ['application/json'],
+  },
+);
 
 void main() {
   const config = ApiConfig(
@@ -61,7 +65,8 @@ void main() {
       return _json({'access': 'access-jwt', 'refresh': 'refresh-jwt'});
     });
     final repository = OriginPhoneAuthRepository(
-      DioClient(config, dio: dio, tokenStore: tokens), tokens,
+      DioClient(config, dio: dio, tokenStore: tokens),
+      tokens,
     );
 
     expect(await repository.requestCode('+919876543210'), '3821');
@@ -69,15 +74,20 @@ void main() {
 
     expect((await tokens.read())?.access, 'access-jwt');
     expect((await tokens.read())?.refresh, 'refresh-jwt');
+    expect(await repository.signedInPhone(), '+919876543210');
+    await repository.signOut();
+    expect(await repository.signedInPhone(), isNull);
   });
 
   test('accepts an OTP field in a development response', () async {
     final tokens = _Tokens();
     final dio = Dio(BaseOptions(baseUrl: config.baseUrl));
-    dio.httpClientAdapter = _Adapter((options) =>
-        _json({'detail': 'OTP sent.', 'otp': '1234'}));
+    dio.httpClientAdapter = _Adapter(
+      (options) => _json({'detail': 'OTP sent.', 'otp': '1234'}),
+    );
     final repository = OriginPhoneAuthRepository(
-      DioClient(config, dio: dio, tokenStore: tokens), tokens,
+      DioClient(config, dio: dio, tokenStore: tokens),
+      tokens,
     );
 
     expect(await repository.requestCode('+919876543210'), '1234');
@@ -91,20 +101,32 @@ void main() {
       expect(options.headers['Authorization'], 'Bearer access-jwt');
       if (options.path == 'stories/series/') {
         return _json([
-          {'id': 'series-1', 'title': 'Gentle Evenings',
-            'description': 'A calming story.', 'status': 'active'},
+          {
+            'id': 'series-1',
+            'title': 'Gentle Evenings',
+            'description': 'A calming story.',
+            'status': 'active',
+          },
         ]);
       }
       if (options.path == 'stories/series/series-1/episodes/') {
         return _json([
-          {'id': 'episode-1', 'series_id': 'series-1',
-            'episode_number': 1, 'title': 'A Beginning',
-            'script': 'Once upon a time', 'audio_key': 'stories/audio/one.mp3'},
+          {
+            'id': 'episode-1',
+            'series_id': 'series-1',
+            'episode_number': 1,
+            'title': 'A Beginning',
+            'script': 'Once upon a time',
+            'audio_key': 'stories/audio/one.mp3',
+          },
         ]);
       }
       expect(options.path, 'stories/episodes/episode-1/media/');
-      return _json({'episode_id': 'episode-1',
-        'audio_url': 'https://assets.example/one.mp3', 'expires_in': 3600});
+      return _json({
+        'episode_id': 'episode-1',
+        'audio_url': 'https://assets.example/one.mp3',
+        'expires_in': 3600,
+      });
     });
     final repository = OriginStoriesRepository(
       DioClient(config, dio: dio, tokenStore: tokens),

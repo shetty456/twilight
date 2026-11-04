@@ -22,6 +22,7 @@ class SecureAuthTokenStore implements AuthTokenStore {
       return AuthTokens(
         access: value['access'] as String,
         refresh: value['refresh'] as String,
+        phone: value['phone'] as String?,
       );
     } on FormatException {
       await clear();
@@ -35,7 +36,11 @@ class SecureAuthTokenStore implements AuthTokenStore {
   @override
   Future<void> write(AuthTokens tokens) => _storage.write(
         key: key,
-        value: jsonEncode({'access': tokens.access, 'refresh': tokens.refresh}),
+        value: jsonEncode({
+          'access': tokens.access,
+          'refresh': tokens.refresh,
+          if (tokens.phone != null) 'phone': tokens.phone,
+        }),
       );
 
   @override
