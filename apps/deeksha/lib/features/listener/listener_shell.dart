@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../app.dart';
 import '../stories/library_page.dart';
 import '../stories/search_page.dart';
-import 'my_library_page.dart';
 import 'profile_page.dart';
 
 class ListenerShell extends StatefulWidget {
@@ -23,8 +22,7 @@ class _ListenerShellState extends State<ListenerShell> {
       children: [
         const HomePage(),
         const SearchPage(),
-        MyLibraryPage(onExplore: () => setState(() => _index = 0)),
-        const ProfilePage(),
+        ProfilePage(onExplore: () => setState(() => _index = 0)),
       ],
     ),
     bottomNavigationBar: DecoratedBox(
@@ -53,18 +51,11 @@ class _ListenerShellState extends State<ListenerShell> {
                 onTap: () => setState(() => _index = 1),
               ),
               _NavItem(
-                label: 'My Library',
-                icon: Icons.bookmarks_outlined,
-                selectedIcon: Icons.bookmarks_rounded,
-                selected: _index == 2,
-                onTap: () => setState(() => _index = 2),
-              ),
-              _NavItem(
                 label: 'Profile',
                 icon: Icons.person_outline_rounded,
                 selectedIcon: Icons.person_rounded,
-                selected: _index == 3,
-                onTap: () => setState(() => _index = 3),
+                selected: _index == 2,
+                onTap: () => setState(() => _index = 2),
               ),
             ],
           ),

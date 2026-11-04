@@ -28,13 +28,16 @@ class _MemoryStorage implements StorageService {
 }
 
 void main() {
-  testWidgets('mobile navigation reaches Search, My Library, and Profile', (
+  testWidgets('Profile contains saved stories and recent listening', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    final libraryController = ListenerLibraryController(
+      Future.value(_MemoryStorage()),
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -45,7 +48,7 @@ void main() {
             ],
           ),
           listenerLibraryProvider.overrideWith(
-            (ref) => ListenerLibraryController(Future.value(_MemoryStorage())),
+            (ref) => libraryController,
           ),
         ],
         child: const MaterialApp(home: ListenerShell()),
@@ -61,21 +64,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Evening Stories'), findsOneWidget);
 
-    await tester.tap(find.text('My Library').last);
-    await tester.pumpAndSettle();
-    expect(find.text('Your stories live here'), findsOneWidget);
-
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
+    expect(find.text('Your library'), findsOneWidget);
+    expect(find.text('My Library'), findsNothing);
     expect(find.text('Sign out'), findsOneWidget);
 
-    await tester.tap(find.text('Home'));
+    await tester.tap(find.text('Explore stories'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Save to My Library'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('My Library').last);
+    await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
     expect(find.text('Saved series'), findsOneWidget);
     expect(find.text('Evening Stories'), findsOneWidget);
+
+    await libraryController.recordListening(
+      series: const StorySeries(id: 'one', title: 'Evening Stories'),
+      episode: const StoryEpisode(
+        id: 'chapter-one',
+        title: 'First Chapter',
+        seriesId: 'one',
+        episodeNumber: 1,
+      ),
+      position: const Duration(seconds: 30),
+      duration: const Duration(minutes: 5),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Continue listening'), findsOneWidget);
+    expect(find.text('Episode 1 · First Chapter'), findsOneWidget);
   });
 }

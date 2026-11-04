@@ -4,10 +4,13 @@ import 'package:ui/ui.dart';
 
 import '../../app.dart';
 import '../../config/providers.dart';
+import 'library_sections.dart';
 import 'listener_library.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
-  const ProfilePage({super.key});
+  const ProfilePage({super.key, required this.onExplore});
+
+  final VoidCallback onExplore;
 
   @override
   ConsumerState<ProfilePage> createState() => _ProfilePageState();
@@ -54,40 +57,52 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: VelaColors.blush,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
                   const CircleAvatar(
-                    radius: 30,
+                    radius: 24,
                     backgroundColor: VelaColors.surface,
                     child: Icon(
                       Icons.person_outline_rounded,
                       color: VelaColors.plum,
-                      size: 32,
+                      size: 26,
                     ),
                   ),
-                  const SizedBox(height: 18),
-                  Text(
-                    'Your listening space',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: VelaColors.ink,
-                      fontWeight: FontWeight.w800,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Your listening space',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: VelaColors.ink,
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$savedCount saved series · '
+                          '$recentCount recent ${recentCount == 1 ? 'listen' : 'listens'}',
+                          style: const TextStyle(
+                            color: VelaColors.plum,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '$savedCount saved series · '
-                    '$recentCount recent ${recentCount == 1 ? 'listen' : 'listens'}',
-                    style: const TextStyle(color: VelaColors.plum),
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: 24),
+            LibrarySections(onExplore: widget.onExplore),
             const SizedBox(height: 28),
             Text(
               'Account',
