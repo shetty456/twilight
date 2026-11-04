@@ -25,9 +25,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
               child: AppTextField(
-                hint: 'Titles and stories',
+                hint: 'Search stories',
                 prefixIcon: const Icon(Icons.search_rounded),
                 autofocus: false,
                 textInputAction: TextInputAction.search,
@@ -72,14 +72,14 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: columns,
                           crossAxisSpacing: 14,
-                          mainAxisSpacing: 18,
-                          mainAxisExtent: tileWidth * 16 / 9 + 52,
+                          mainAxisSpacing: 14,
+                          mainAxisExtent: tileWidth * 5 / 4 + 48,
                         ),
                         itemCount: results.length,
                         itemBuilder: (context, index) {
                           final item = results[index];
                           return InkWell(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(12),
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute<void>(
                                 builder: (_) => SeriesPage(series: item),
@@ -89,14 +89,14 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 AspectRatio(
-                                  aspectRatio: 9 / 16,
+                                  aspectRatio: 4 / 5,
                                   child: StoryArtwork(
                                     thumbnail:
                                         item.thumbnailUrl ?? item.thumbnail,
-                                    borderRadius: 14,
+                                    borderRadius: 10,
                                   ),
                                 ),
-                                const SizedBox(height: 7),
+                                const SizedBox(height: 8),
                                 Text(
                                   item.title,
                                   maxLines: 2,
@@ -104,6 +104,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                   style: const TextStyle(
                                     color: VelaColors.ink,
                                     fontWeight: FontWeight.w700,
+                                    height: 1.2,
                                   ),
                                 ),
                               ],

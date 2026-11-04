@@ -1,6 +1,7 @@
 import 'package:deeksha/config/providers.dart';
 import 'package:deeksha/features/listener/listener_library.dart';
 import 'package:deeksha/features/listener/listener_shell.dart';
+import 'package:deeksha/features/stories/search_page.dart';
 import 'package:deeksha/features/stories/story_artwork.dart';
 import 'package:deeksha/features/stories/story_cards.dart';
 import 'package:deeksha/stories/models/story_models.dart';
@@ -81,6 +82,17 @@ void main() {
     await tester.tap(find.text('Search'));
     await tester.pumpAndSettle();
     expect(find.text('The Quiet Path'), findsOneWidget);
+    final searchArtwork = find
+        .descendant(
+          of: find.byType(SearchPage),
+          matching: find.byType(StoryArtwork),
+        )
+        .first;
+    final searchArtworkSize = tester.getSize(searchArtwork);
+    expect(
+      searchArtworkSize.width / searchArtworkSize.height,
+      closeTo(4 / 5, 0.001),
+    );
     expect(tester.takeException(), isNull);
   });
 }
