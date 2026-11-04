@@ -47,9 +47,8 @@ void main() {
               StorySeries(id: 'one', title: 'Evening Stories'),
             ],
           ),
-          listenerLibraryProvider.overrideWith(
-            (ref) => libraryController,
-          ),
+          listenerLibraryProvider.overrideWith((ref) => libraryController),
+          signedInPhoneProvider.overrideWith((ref) async => '+919876543210'),
         ],
         child: const MaterialApp(home: ListenerShell()),
       ),
@@ -66,10 +65,21 @@ void main() {
 
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
-    expect(find.text('Your library'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    expect(find.text('Your profile'), findsOneWidget);
+    expect(find.text('+919876543210'), findsOneWidget);
+    expect(find.text('Saved stories'), findsOneWidget);
+    expect(tester.widget<CircleAvatar>(find.byType(CircleAvatar)).radius, 46);
+    expect(find.text('Profile completion'), findsNothing);
     expect(find.text('My Library'), findsNothing);
+    await tester.scrollUntilVisible(
+      find.text('Sign out'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
     expect(find.text('Sign out'), findsOneWidget);
 
+    await tester.ensureVisible(find.text('Explore stories'));
     await tester.tap(find.text('Explore stories'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Save to My Library'));
@@ -93,5 +103,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Continue listening'), findsOneWidget);
     expect(find.text('Episode 1 · First Chapter'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

@@ -44,6 +44,7 @@ void main() {
           listenerLibraryProvider.overrideWith(
             (ref) => ListenerLibraryController(Future.value(_MemoryStorage())),
           ),
+          signedInPhoneProvider.overrideWith((ref) async => null),
         ],
         child: const MaterialApp(home: ListenerShell()),
       ),

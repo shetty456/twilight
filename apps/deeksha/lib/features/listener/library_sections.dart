@@ -23,7 +23,7 @@ class LibrarySections extends ConsumerWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _SectionHeading('Your library'),
+              const _SectionHeading('Saved stories'),
               const SizedBox(height: 8),
               const Text(
                 'Save a series or start listening to find it here.',
@@ -54,7 +54,7 @@ class LibrarySections extends ConsumerWidget {
                 ),
                 const SizedBox(height: 10),
               ],
-              const SizedBox(height: 20),
+              const Divider(height: 36, color: VelaColors.blush),
             ],
             const _SectionHeading('Saved series'),
             const SizedBox(height: 12),
