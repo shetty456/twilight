@@ -28,7 +28,7 @@ class SeriesPage extends ConsumerWidget {
             height: 280,
             child: StoryArtwork(
               thumbnail: series.thumbnailUrl ?? series.thumbnail,
-              borderRadius: 24,
+              borderRadius: 16,
             ),
           ),
           const SizedBox(height: 20),
@@ -120,10 +120,10 @@ class SeriesPage extends ConsumerWidget {
                     for (final episode in items) ...[
                       Material(
                         color: VelaColors.surface,
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(12),
                         child: ListTile(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,

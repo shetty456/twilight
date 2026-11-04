@@ -181,7 +181,7 @@ class _FeaturedStory extends StatelessWidget {
   Widget build(BuildContext context) => SizedBox(
     height: 350,
     child: ClipRRect(
-      borderRadius: BorderRadius.circular(26),
+      borderRadius: BorderRadius.circular(18),
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -311,7 +311,7 @@ class _HomeNotice extends StatelessWidget {
     padding: const EdgeInsets.all(24),
     decoration: BoxDecoration(
       color: VelaColors.blush,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(12),
     ),
     child: Text(message, style: const TextStyle(color: VelaColors.ink)),
   );

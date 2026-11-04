@@ -21,7 +21,7 @@ class StoryPosterCard extends StatelessWidget {
   Widget build(BuildContext context) => SizedBox(
     width: width,
     child: InkWell(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,7 +30,7 @@ class StoryPosterCard extends StatelessWidget {
             aspectRatio: 9 / 16,
             child: StoryArtwork(
               thumbnail: series.thumbnailUrl ?? series.thumbnail,
-              borderRadius: 16,
+              borderRadius: 10,
             ),
           ),
           const SizedBox(height: 8),
@@ -71,9 +71,9 @@ class RecentListenCard extends StatelessWidget {
       width: width,
       child: Material(
         color: VelaColors.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(12),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(10),

@@ -57,7 +57,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: VelaColors.blush,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,7 +99,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             const SizedBox(height: 12),
             Material(
               color: VelaColors.surface,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(10),
               child: ListTile(
                 leading: const Icon(
                   Icons.logout_rounded,

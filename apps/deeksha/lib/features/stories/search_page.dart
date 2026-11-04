@@ -79,7 +79,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                         itemBuilder: (context, index) {
                           final item = results[index];
                           return InkWell(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(10),
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute<void>(
                                 builder: (_) => SeriesPage(series: item),

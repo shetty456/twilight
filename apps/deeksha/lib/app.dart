@@ -55,14 +55,14 @@ class VelaFmApp extends ConsumerWidget {
         color: VelaColors.surface,
         elevation: 0,
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: VelaColors.surface,
         hintStyle: const TextStyle(color: VelaColors.plum),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(

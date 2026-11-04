@@ -109,7 +109,7 @@ class MyLibraryPage extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final series = value.saved[index];
                       return InkWell(
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(12),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
                             builder: (_) => SeriesPage(series: series),
@@ -125,7 +125,7 @@ class MyLibraryPage extends ConsumerWidget {
                                   StoryArtwork(
                                     thumbnail:
                                         series.thumbnailUrl ?? series.thumbnail,
-                                    borderRadius: 16,
+                                    borderRadius: 10,
                                   ),
                                   Positioned(
                                     top: 7,

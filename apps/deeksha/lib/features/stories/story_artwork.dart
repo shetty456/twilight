@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app.dart';
 
 class StoryArtwork extends StatelessWidget {
-  const StoryArtwork({super.key, this.thumbnail, this.borderRadius = 18});
+  const StoryArtwork({super.key, this.thumbnail, this.borderRadius = 12});
 
   final String? thumbnail;
   final double borderRadius;

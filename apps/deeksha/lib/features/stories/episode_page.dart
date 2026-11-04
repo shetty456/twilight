@@ -193,7 +193,7 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
             height: 240,
             child: StoryArtwork(
               thumbnail: widget.series.thumbnailUrl ?? widget.series.thumbnail,
-              borderRadius: 28,
+              borderRadius: 18,
             ),
           ),
           const SizedBox(height: 28),
@@ -219,7 +219,7 @@ class _EpisodePageState extends ConsumerState<EpisodePage> {
             padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
             decoration: BoxDecoration(
               color: VelaColors.surface,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: media.when(
               data: (value) {
