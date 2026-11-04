@@ -29,6 +29,20 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final height = size == AppButtonSize.regular ? 56.0 : 44.0;
+    final compactStyle =
+        size == AppButtonSize.compact
+            ? ButtonStyle(
+              minimumSize: const WidgetStatePropertyAll(Size(0, 44)),
+              padding: const WidgetStatePropertyAll(
+                EdgeInsets.symmetric(horizontal: 16),
+              ),
+              shape: WidgetStatePropertyAll(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+              ),
+            )
+            : null;
     final scheme = Theme.of(context).colorScheme;
     final child =
         isLoading
@@ -64,14 +78,17 @@ class AppButton extends StatelessWidget {
     final button = switch (variant) {
       AppButtonVariant.primary => FilledButton(
         onPressed: isLoading ? null : onPressed,
+        style: compactStyle,
         child: child,
       ),
       AppButtonVariant.secondary => OutlinedButton(
         onPressed: isLoading ? null : onPressed,
+        style: compactStyle,
         child: child,
       ),
       AppButtonVariant.ghost => TextButton(
         onPressed: isLoading ? null : onPressed,
+        style: compactStyle,
         child: child,
       ),
     };

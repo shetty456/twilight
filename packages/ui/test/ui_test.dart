@@ -59,6 +59,40 @@ void main() {
     },
   );
 
+  testWidgets('compact buttons use the small corner radius', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: const Scaffold(
+          body: Column(
+            children: [
+              AppButton(
+                label: 'Primary',
+                onPressed: null,
+                size: AppButtonSize.compact,
+              ),
+              AppButton(
+                label: 'Secondary',
+                onPressed: null,
+                size: AppButtonSize.compact,
+                variant: AppButtonVariant.secondary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    for (final button in [
+      tester.widget<FilledButton>(find.byType(FilledButton)),
+      tester.widget<OutlinedButton>(find.byType(OutlinedButton)),
+    ]) {
+      final shape = button.style!.shape!.resolve({}) as RoundedRectangleBorder;
+      expect(shape.borderRadius, BorderRadius.circular(AppSpacing.radiusSm));
+    }
+    expect(tester.getSize(find.byType(AppButton).first).height, 44);
+  });
+
   testWidgets('AppSkeleton enables automatic skeleton painting', (
     tester,
   ) async {
