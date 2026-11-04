@@ -7,9 +7,21 @@ class StoryHomeSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      const Padding(
-        padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-        child: AppSkeletonBox(width: double.infinity, height: 350, radius: 18),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: const AspectRatio(
+              aspectRatio: 5 / 6,
+              child: AppSkeletonBox(
+                width: double.infinity,
+                height: double.infinity,
+                radius: 14,
+              ),
+            ),
+          ),
+        ),
       ),
       const SizedBox(height: 28),
       const Padding(

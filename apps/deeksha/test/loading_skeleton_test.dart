@@ -47,6 +47,8 @@ void main() {
       ),
     );
     expect(find.byType(StoryHomeSkeleton), findsOneWidget);
+    final heroSkeleton = tester.getSize(find.byType(AppSkeletonBox).first);
+    expect(heroSkeleton.width / heroSkeleton.height, closeTo(5 / 6, 0.001));
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(

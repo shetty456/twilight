@@ -54,7 +54,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('FEATURED STORY'), findsOneWidget);
+    expect(find.text('Featured'), findsOneWidget);
     tester.view.physicalSize = const Size(320, 700);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);

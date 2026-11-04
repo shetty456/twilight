@@ -50,6 +50,21 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    final featured = find.byKey(const ValueKey('featured-story'));
+    final featuredSize = tester.getSize(featured);
+    expect(featuredSize.width / featuredSize.height, closeTo(5 / 6, 0.001));
+    expect(find.text('Featured'), findsOneWidget);
+    expect(find.text('Listen'), findsOneWidget);
+    final listenSize = tester.getSize(
+      find.byKey(const ValueKey('featured-listen')),
+    );
+    expect(listenSize.height, 48);
+    expect(listenSize.width, lessThan(featuredSize.width / 2));
+    expect(find.byTooltip('Save to My Library'), findsOneWidget);
+    expect(
+      tester.getSize(find.byTooltip('Save to My Library')),
+      const Size(48, 48),
+    );
     expect(find.text('Stories for you'), findsOneWidget);
     expect(find.text('See all'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -68,6 +83,12 @@ void main() {
 
     tester.view.physicalSize = const Size(320, 700);
     await tester.pumpAndSettle();
+    final narrowFeaturedSize = tester.getSize(featured);
+    expect(
+      narrowFeaturedSize.width / narrowFeaturedSize.height,
+      closeTo(5 / 6, 0.001),
+    );
+    expect(narrowFeaturedSize.height, lessThan(featuredSize.height));
     expect(tester.takeException(), isNull);
     final thirdVisibleFractionNarrow =
         (320 - tester.getTopLeft(thirdCard).dx) /

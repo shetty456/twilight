@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui/ui.dart';
@@ -172,108 +174,156 @@ class _FeaturedStory extends StatelessWidget {
   final VoidCallback onSave;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 350,
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(18),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          StoryArtwork(
-            thumbnail: series.thumbnailUrl ?? series.thumbnail,
-            borderRadius: 0,
-          ),
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0x22000000),
-                  Color(0x33000000),
-                  Color(0xE522172A),
-                ],
-                stops: [0.0, 0.4, 1.0],
+  Widget build(BuildContext context) => Center(
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 420),
+      child: AspectRatio(
+        aspectRatio: 5 / 6,
+        child: ClipRRect(
+          key: const ValueKey('featured-story'),
+          borderRadius: BorderRadius.circular(14),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              StoryArtwork(
+                thumbnail: series.thumbnailUrl ?? series.thumbnail,
+                borderRadius: 0,
               ),
-            ),
-          ),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(onTap: onOpen),
-          ),
-          Positioned(
-            left: 22,
-            right: 22,
-            bottom: 22,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'FEATURED STORY',
-                  style: TextStyle(
-                    color: Color(0xFFFFD9C2),
-                    letterSpacing: 1.8,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
+              ShaderMask(
+                blendMode: BlendMode.dstIn,
+                shaderCallback: (bounds) => const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.transparent,
+                    Color(0x99000000),
+                    Colors.black,
+                  ],
+                  stops: [0.0, 0.34, 0.78, 1.0],
+                ).createShader(bounds),
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 9, sigmaY: 9),
+                  child: StoryArtwork(
+                    thumbnail: series.thumbnailUrl ?? series.thumbnail,
+                    borderRadius: 0,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  series.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 29,
-                    height: 1.1,
-                    fontWeight: FontWeight.w800,
+              ),
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0x14000000),
+                      Color(0x660F0B14),
+                      Color(0xF719121D),
+                    ],
+                    stops: [0.22, 0.58, 1.0],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  series.description?.isNotEmpty == true
-                      ? series.description!
-                      : 'A story waiting for you.',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFFF7EDE9),
-                    height: 1.35,
+              ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(onTap: onOpen),
+              ),
+              Positioned(
+                top: 16,
+                left: 16,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: const Color(0xB319121D),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: AppButton(
-                        label: 'Start story',
-                        icon: Icons.play_arrow_rounded,
-                        expanded: true,
-                        onPressed: onStart,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    child: Text(
+                      'Featured',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    SizedBox(
-                      width: 56,
-                      height: 56,
-                      child: IconButton.filledTonal(
-                        tooltip: saved
-                            ? 'Remove from My Library'
-                            : 'Save to My Library',
-                        onPressed: onSave,
-                        icon: Icon(
-                          saved
-                              ? Icons.bookmark_rounded
-                              : Icons.bookmark_add_outlined,
-                        ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 18,
+                right: 18,
+                bottom: 18,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      series.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 27,
+                        height: 1.12,
+                        fontWeight: FontWeight.w800,
                       ),
+                    ),
+                    if (series.description?.isNotEmpty == true) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        series.description!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Color(0xFFF7EDE9)),
+                      ),
+                    ],
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        FilledButton.icon(
+                          key: const ValueKey('featured-listen'),
+                          onPressed: onStart,
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(0, 48),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                          label: const Text('Listen'),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 48,
+                          height: 48,
+                          child: IconButton(
+                            tooltip: saved
+                                ? 'Remove from My Library'
+                                : 'Save to My Library',
+                            onPressed: onSave,
+                            style: IconButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: const Color(0x9919121D),
+                              side: const BorderSide(color: Color(0x99FFFFFF)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            icon: Icon(
+                              saved
+                                  ? Icons.bookmark_rounded
+                                  : Icons.bookmark_add_outlined,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     ),
   );
