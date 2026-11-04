@@ -80,21 +80,24 @@ void main() {
         ),
       );
       expect(find.byType(TextField), findsOneWidget);
-      expect(
-        find.text('India +91 is prefilled. Replace it for another country.'),
-        findsOneWidget,
-      );
+      expect(find.text("We'll text you a 4-digit code."), findsOneWidget);
       await tester.enterText(find.byType(TextField), '98765 43210');
       await tester.tap(find.text('Send code'));
       await tester.pumpAndSettle();
 
       expect(adapter.sentPhones, ['+919876543210']);
       expect(find.text('Enter your code'), findsOneWidget);
-      expect(
-        find.text('We sent a 4-digit code to +919876543210.'),
-        findsOneWidget,
-      );
+      expect(find.text('Code sent to +919876543210'), findsOneWidget);
       expect(find.text('Resend in 30s'), findsOneWidget);
+      for (var index = 0; index < 4; index++) {
+        expect(find.byKey(ValueKey('otp-digit-$index')), findsOneWidget);
+      }
+      await tester.enterText(find.byType(TextField), '3821');
+      await tester.pump();
+      expect(find.text('3'), findsOneWidget);
+      expect(find.text('8'), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
       expect(
         find.text('Development OTP: 3821'),
         environment.isDevelopment ? findsOneWidget : findsNothing,
@@ -105,10 +108,12 @@ void main() {
       await tester.tap(find.text('Resend code'));
       await tester.pumpAndSettle();
       expect(adapter.sentPhones, ['+919876543210', '+919876543210']);
-      expect(
-        find.text('A new code was sent to +919876543210.'),
-        findsOneWidget,
-      );
+      expect(find.text('New code sent to +919876543210'), findsOneWidget);
+
+      await tester.tap(find.text('Change number'));
+      await tester.pump();
+      expect(find.text('Sign in with phone'), findsOneWidget);
+      expect(find.byKey(const ValueKey('otp-digit-0')), findsNothing);
 
       await tester.pumpWidget(const SizedBox());
     });
