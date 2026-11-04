@@ -8,20 +8,48 @@ import '../theme/app_spacing.dart';
 /// For data-driven lists, pass sample items while [isLoading] is true so the
 /// list has children to paint. Avoid starting real image requests in that state.
 class AppSkeleton extends StatelessWidget {
-  const AppSkeleton({
-    super.key,
-    required this.isLoading,
-    required this.child,
-  });
+  const AppSkeleton({super.key, required this.isLoading, required this.child});
 
   final bool isLoading;
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => Skeletonizer(
-        enabled: isLoading,
-        child: child,
-      );
+  Widget build(BuildContext context) =>
+      Skeletonizer(enabled: isLoading, child: child);
+}
+
+/// A skeleton block sized to match an image, card, or control.
+class AppSkeletonBox extends StatelessWidget {
+  const AppSkeletonBox({super.key, this.width, this.height, this.radius = 12});
+
+  final double? width;
+  final double? height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) => Skeletonizer.zone(
+    child: Bone(
+      width: width,
+      height: height,
+      borderRadius: BorderRadius.circular(radius),
+    ),
+  );
+}
+
+/// A skeleton line or short group of lines for titles and descriptions.
+class AppSkeletonLines extends StatelessWidget {
+  const AppSkeletonLines({super.key, this.width, this.lines = 1});
+
+  final double? width;
+  final int lines;
+
+  @override
+  Widget build(BuildContext context) => Skeletonizer.zone(
+    child:
+        lines == 1
+            ? Bone.text(width: width)
+            : Bone.multiText(lines: lines, width: width),
+  );
 }
 
 /// A ready-to-use loading list for screens without data yet.
@@ -37,18 +65,20 @@ class AppSkeletonList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AppSkeleton(
-        isLoading: true,
-        child: ListView.builder(
-          itemCount: itemCount,
-          itemBuilder: (context, index) => ListTile(
-            leading: showAvatar
-                ? const CircleAvatar(child: Icon(Icons.person))
-                : null,
+    isLoading: true,
+    child: ListView.builder(
+      itemCount: itemCount,
+      itemBuilder:
+          (context, index) => ListTile(
+            leading:
+                showAvatar
+                    ? const CircleAvatar(child: Icon(Icons.person))
+                    : null,
             title: const Text('Loading item title'),
             subtitle: const Text('Loading item details'),
           ),
-        ),
-      );
+    ),
+  );
 }
 
 /// A ready-made card placeholder for summary and detail screens.
@@ -59,27 +89,27 @@ class AppSkeletonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Skeletonizer.zone(
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (showImage) ...[
-                  const AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: Bone.square(size: double.infinity),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                ],
-                const Bone.text(words: 3),
-                const SizedBox(height: AppSpacing.sm),
-                const Bone.multiText(lines: 2),
-              ],
-            ),
-          ),
+    child: Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showImage) ...[
+              const AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Bone.square(size: double.infinity),
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+            const Bone.text(words: 3),
+            const SizedBox(height: AppSpacing.sm),
+            const Bone.multiText(lines: 2),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }
 
 /// A grid of card placeholders; no fake data is needed.
@@ -97,14 +127,14 @@ class AppSkeletonGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GridView.builder(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        itemCount: itemCount,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          mainAxisSpacing: AppSpacing.md,
-          crossAxisSpacing: AppSpacing.md,
-          childAspectRatio: showImage ? 0.8 : 1.5,
-        ),
-        itemBuilder: (_, __) => AppSkeletonCard(showImage: showImage),
-      );
+    padding: const EdgeInsets.all(AppSpacing.md),
+    itemCount: itemCount,
+    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: crossAxisCount,
+      mainAxisSpacing: AppSpacing.md,
+      crossAxisSpacing: AppSpacing.md,
+      childAspectRatio: showImage ? 0.8 : 1.5,
+    ),
+    itemBuilder: (_, __) => AppSkeletonCard(showImage: showImage),
+  );
 }
