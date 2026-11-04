@@ -28,7 +28,7 @@ class _MemoryStorage implements StorageService {
 }
 
 void main() {
-  testWidgets('mobile navigation reaches Home, My Library, and Profile', (
+  testWidgets('mobile navigation reaches Search, My Library, and Profile', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -56,6 +56,10 @@ void main() {
     tester.view.physicalSize = const Size(320, 700);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('Search'));
+    await tester.pumpAndSettle();
+    expect(find.text('Evening Stories'), findsOneWidget);
 
     await tester.tap(find.text('My Library').last);
     await tester.pumpAndSettle();

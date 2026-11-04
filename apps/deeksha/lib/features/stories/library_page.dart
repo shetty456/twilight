@@ -7,7 +7,6 @@ import '../../config/providers.dart';
 import '../../stories/models/story_models.dart';
 import '../listener/listener_library.dart';
 import 'episode_page.dart';
-import 'search_page.dart';
 import 'series_page.dart';
 import 'story_artwork.dart';
 import 'story_cards.dart';
@@ -24,161 +23,139 @@ class HomePage extends ConsumerWidget {
     final stories = ref.watch(seriesProvider);
     final library = ref.watch(listenerLibraryProvider).valueOrNull;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          ref.watch(productNameProvider).toUpperCase(),
-          style: const TextStyle(
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.3,
-          ),
-        ),
-        actions: [
-          IconButton(
-            tooltip: 'Search stories',
-            icon: const Icon(Icons.search_rounded),
-            onPressed: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute<void>(builder: (_) => const SearchPage())),
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () => ref.refresh(seriesProvider.future),
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: [
-            ...stories.when(
-              data: (series) {
-                if (series.isEmpty) {
-                  return const [
-                    Padding(
-                      padding: EdgeInsets.all(24),
-                      child: _HomeNotice(
-                        'Stories will appear here as soon as they are published.',
-                      ),
-                    ),
-                  ];
-                }
-                final featured = series.first;
-                final firstEpisode = ref
-                    .watch(episodesProvider(featured.id))
-                    .valueOrNull
-                    ?.firstOrNull;
-                final recent = library?.recent ?? const [];
-                return [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    child: _FeaturedStory(
-                      series: featured,
-                      saved: library?.isSaved(featured.id) ?? false,
-                      onOpen: () => _openSeries(context, featured),
-                      onStart: () {
-                        if (firstEpisode == null) {
-                          _openSeries(context, featured);
-                        } else {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => EpisodePage(
-                                series: featured,
-                                episode: firstEpisode,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      onSave: () => ref
-                          .read(listenerLibraryProvider.notifier)
-                          .toggleSaved(featured),
-                    ),
-                  ),
-                  if (recent.isNotEmpty) ...[
-                    const SizedBox(height: 28),
-                    const _SectionTitle('Continue listening'),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 114,
-                      child: ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        scrollDirection: Axis.horizontal,
-                        itemCount: recent.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 12),
-                        itemBuilder: (context, index) => RecentListenCard(
-                          width: 280,
-                          listen: recent[index],
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => EpisodePage(
-                                series: recent[index].series,
-                                episode: recent[index].episode,
-                              ),
-                            ),
-                          ),
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () => ref.refresh(seriesProvider.future),
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              ...stories.when(
+                data: (series) {
+                  if (series.isEmpty) {
+                    return const [
+                      Padding(
+                        padding: EdgeInsets.all(24),
+                        child: _HomeNotice(
+                          'Stories will appear here as soon as they are published.',
                         ),
                       ),
-                    ),
-                  ],
-                  const SizedBox(height: 28),
-                  _SectionTitle(
-                    'Stories for you',
-                    onSeeAll: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const SearchPage(),
+                    ];
+                  }
+                  final featured = series.first;
+                  final firstEpisode = ref
+                      .watch(episodesProvider(featured.id))
+                      .valueOrNull
+                      ?.firstOrNull;
+                  final recent = library?.recent ?? const [];
+                  return [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: _FeaturedStory(
+                        series: featured,
+                        saved: library?.isSaved(featured.id) ?? false,
+                        onOpen: () => _openSeries(context, featured),
+                        onStart: () {
+                          if (firstEpisode == null) {
+                            _openSeries(context, featured);
+                          } else {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => EpisodePage(
+                                  series: featured,
+                                  episode: firstEpisode,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        onSave: () => ref
+                            .read(listenerLibraryProvider.notifier)
+                            .toggleSaved(featured),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final cardWidth =
-                          (constraints.maxWidth - 40 - 14 * 2) / 3;
-                      return SizedBox(
-                        height: cardWidth * 16 / 9 + 48,
+                    if (recent.isNotEmpty) ...[
+                      const SizedBox(height: 28),
+                      const _SectionTitle('Continue listening'),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 114,
                         child: ListView.separated(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           scrollDirection: Axis.horizontal,
-                          itemCount: series.length,
+                          itemCount: recent.length,
                           separatorBuilder: (_, __) =>
-                              const SizedBox(width: 14),
-                          itemBuilder: (context, index) => StoryPosterCard(
-                            width: cardWidth,
-                            series: series[index],
-                            onTap: () => _openSeries(context, series[index]),
+                              const SizedBox(width: 12),
+                          itemBuilder: (context, index) => RecentListenCard(
+                            width: 280,
+                            listen: recent[index],
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => EpisodePage(
+                                  series: recent[index].series,
+                                  episode: recent[index].episode,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 32),
-                ];
-              },
-              loading: () => const [
-                Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(48),
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-              ],
-              error: (_, __) => [
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      const _HomeNotice(
-                        'Could not load stories. Check your connection.',
-                      ),
-                      const SizedBox(height: 12),
-                      AppButton(
-                        label: 'Try again',
-                        variant: AppButtonVariant.secondary,
-                        onPressed: () => ref.invalidate(seriesProvider),
                       ),
                     ],
+                    const SizedBox(height: 28),
+                    const _SectionTitle('Stories for you'),
+                    const SizedBox(height: 12),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final cardWidth =
+                            (constraints.maxWidth - 40 - 14 * 2) / 3;
+                        return SizedBox(
+                          height: cardWidth * 16 / 9 + 48,
+                          child: ListView.separated(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            scrollDirection: Axis.horizontal,
+                            itemCount: series.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: 14),
+                            itemBuilder: (context, index) => StoryPosterCard(
+                              width: cardWidth,
+                              series: series[index],
+                              onTap: () => _openSeries(context, series[index]),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 32),
+                  ];
+                },
+                loading: () => const [
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(48),
+                      child: CircularProgressIndicator(),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+                error: (_, __) => [
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        const _HomeNotice(
+                          'Could not load stories. Check your connection.',
+                        ),
+                        const SizedBox(height: 12),
+                        AppButton(
+                          label: 'Try again',
+                          variant: AppButtonVariant.secondary,
+                          onPressed: () => ref.invalidate(seriesProvider),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -309,27 +286,18 @@ class _FeaturedStory extends StatelessWidget {
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.title, {this.onSeeAll});
+  const _SectionTitle(this.title);
   final String title;
-  final VoidCallback? onSeeAll;
 
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Row(
-      children: [
-        Expanded(
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: VelaColors.ink,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-        if (onSeeAll != null)
-          TextButton(onPressed: onSeeAll, child: const Text('See all')),
-      ],
+    child: Text(
+      title,
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+        color: VelaColors.ink,
+        fontWeight: FontWeight.w800,
+      ),
     ),
   );
 }
