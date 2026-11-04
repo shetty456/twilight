@@ -44,13 +44,42 @@ class HomePage extends ConsumerWidget {
                       ),
                     ];
                   }
-                  final featured = series.first;
+                  final recent = library?.recent ?? const <RecentListen>[];
+                  final featured = _selectFeaturedStory(
+                    series,
+                    recent.map((item) => item.series.id).toSet(),
+                  );
+                  final otherStories = series
+                      .where((item) => item.id != featured.id)
+                      .toList();
                   final firstEpisode = ref
                       .watch(episodesProvider(featured.id))
                       .valueOrNull
                       ?.firstOrNull;
-                  final recent = library?.recent ?? const [];
                   return [
+                    if (recent.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      const _SectionTitle('Continue listening'),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: SizedBox(
+                          height: 114,
+                          child: RecentListenCard(
+                            listen: recent.first,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => EpisodePage(
+                                  series: recent.first.series,
+                                  episode: recent.first.episode,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                       child: _FeaturedStory(
@@ -76,57 +105,35 @@ class HomePage extends ConsumerWidget {
                             .toggleSaved(featured),
                       ),
                     ),
-                    if (recent.isNotEmpty) ...[
+                    if (otherStories.isNotEmpty) ...[
                       const SizedBox(height: 28),
-                      const _SectionTitle('Continue listening'),
+                      const _SectionTitle('More stories'),
                       const SizedBox(height: 12),
-                      SizedBox(
-                        height: 114,
-                        child: ListView.separated(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          scrollDirection: Axis.horizontal,
-                          itemCount: recent.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(width: 12),
-                          itemBuilder: (context, index) => RecentListenCard(
-                            width: 280,
-                            listen: recent[index],
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) => EpisodePage(
-                                  series: recent[index].series,
-                                  episode: recent[index].episode,
-                                ),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final cardWidth =
+                              (constraints.maxWidth - 20 - 14 * 2) * 3 / 7;
+                          return SizedBox(
+                            height: cardWidth * 5 / 4 + 48,
+                            child: ListView.separated(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
+                              scrollDirection: Axis.horizontal,
+                              itemCount: otherStories.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 14),
+                              itemBuilder: (context, index) => StoryPosterCard(
+                                width: cardWidth,
+                                series: otherStories[index],
+                                onTap: () =>
+                                    _openSeries(context, otherStories[index]),
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ],
-                    const SizedBox(height: 28),
-                    const _SectionTitle('Stories for you'),
-                    const SizedBox(height: 12),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final cardWidth =
-                            (constraints.maxWidth - 20 - 14 * 2) * 3 / 7;
-                        return SizedBox(
-                          height: cardWidth * 5 / 4 + 48,
-                          child: ListView.separated(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            scrollDirection: Axis.horizontal,
-                            itemCount: series.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(width: 14),
-                            itemBuilder: (context, index) => StoryPosterCard(
-                              width: cardWidth,
-                              series: series[index],
-                              onTap: () => _openSeries(context, series[index]),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
                     const SizedBox(height: 32),
                   ];
                 },
@@ -156,6 +163,33 @@ class HomePage extends ConsumerWidget {
       ),
     );
   }
+}
+
+StorySeries _selectFeaturedStory(
+  List<StorySeries> series,
+  Set<String> recentlyPlayedIds,
+) {
+  int score(StorySeries story) {
+    final artwork = story.thumbnailUrl ?? story.thumbnail;
+    final uri = Uri.tryParse(artwork ?? '');
+    final hasArtwork =
+        uri != null && (uri.scheme == 'https' || uri.scheme == 'http');
+    return (story.isFeatured ? 100 : 0) +
+        (hasArtwork ? 10 : 0) +
+        (story.description?.trim().isNotEmpty == true ? 2 : 0) +
+        (recentlyPlayedIds.contains(story.id) ? 0 : 1);
+  }
+
+  var featured = series.first;
+  var bestScore = score(featured);
+  for (final story in series.skip(1)) {
+    final candidateScore = score(story);
+    if (candidateScore > bestScore) {
+      featured = story;
+      bestScore = candidateScore;
+    }
+  }
+  return featured;
 }
 
 class _FeaturedStory extends StatelessWidget {

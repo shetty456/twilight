@@ -103,6 +103,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Continue listening'), findsOneWidget);
     expect(find.text('Episode 1 · First Chapter'), findsOneWidget);
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+    expect(find.text('Continue listening'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Continue listening')).dy,
+      lessThan(
+        tester.getTopLeft(find.byKey(const ValueKey('featured-story'))).dy,
+      ),
+    );
     expect(tester.takeException(), isNull);
   });
 }

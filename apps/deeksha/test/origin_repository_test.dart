@@ -105,6 +105,7 @@ void main() {
             'id': 'series-1',
             'title': 'Gentle Evenings',
             'description': 'A calming story.',
+            'is_featured': true,
             'status': 'active',
           },
         ]);
@@ -137,6 +138,7 @@ void main() {
     final media = await repository.media(episodes.single.id);
 
     expect(series.single.title, 'Gentle Evenings');
+    expect(series.single.isFeatured, isTrue);
     expect(episodes.single.audioKey, 'stories/audio/one.mp3');
     expect(media.audioUrl, 'https://assets.example/one.mp3');
   });

@@ -22,6 +22,51 @@ class _MemoryStorage implements StorageService {
 }
 
 void main() {
+  testWidgets('home picks a complete story when no series is marked featured', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          seriesProvider.overrideWith(
+            (ref) async => const [
+              StorySeries(id: 'plain', title: 'Plain Story'),
+              StorySeries(
+                id: 'complete',
+                title: 'Gentle Evening',
+                description: 'A calming story.',
+              ),
+            ],
+          ),
+          listenerLibraryProvider.overrideWith(
+            (ref) => ListenerLibraryController(Future.value(_MemoryStorage())),
+          ),
+        ],
+        child: const MaterialApp(home: ListenerShell()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('featured-story')),
+        matching: find.text('Gentle Evening'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(StoryPosterCard),
+        matching: find.text('Plain Story'),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('short portrait cards show two and a third on mobile', (
     tester,
   ) async {
@@ -36,7 +81,7 @@ void main() {
           seriesProvider.overrideWith(
             (ref) async => const [
               StorySeries(id: 'one', title: 'Evening Stories'),
-              StorySeries(id: 'two', title: 'The Quiet Path'),
+              StorySeries(id: 'two', title: 'The Quiet Path', isFeatured: true),
               StorySeries(id: 'three', title: 'Moonlit Moments'),
               StorySeries(id: 'four', title: 'The Lotus Lake'),
             ],
@@ -54,6 +99,17 @@ void main() {
     final featuredSize = tester.getSize(featured);
     expect(featuredSize.width / featuredSize.height, closeTo(5 / 6, 0.001));
     expect(find.text('Featured'), findsOneWidget);
+    expect(
+      find.descendant(of: featured, matching: find.text('The Quiet Path')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(StoryPosterCard),
+        matching: find.text('The Quiet Path'),
+      ),
+      findsNothing,
+    );
     expect(find.text('Listen'), findsOneWidget);
     final listenSize = tester.getSize(
       find.byKey(const ValueKey('featured-listen')),
@@ -65,7 +121,7 @@ void main() {
       tester.getSize(find.byTooltip('Save to My Library')),
       const Size(48, 48),
     );
-    expect(find.text('Stories for you'), findsOneWidget);
+    expect(find.text('More stories'), findsOneWidget);
     expect(find.text('See all'), findsNothing);
     expect(tester.takeException(), isNull);
     final posterArtwork = find.descendant(
