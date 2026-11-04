@@ -118,20 +118,35 @@ class HomePage extends ConsumerWidget {
                     ),
                   ],
                   const SizedBox(height: 28),
-                  const _SectionTitle('Stories for you'),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    height: 240,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: series.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 14),
-                      itemBuilder: (context, index) => StoryPosterCard(
-                        series: series[index],
-                        onTap: () => _openSeries(context, series[index]),
+                  _SectionTitle(
+                    'Stories for you',
+                    onSeeAll: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const SearchPage(),
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final cardWidth =
+                          (constraints.maxWidth - 40 - 14 * 2) / 3;
+                      return SizedBox(
+                        height: cardWidth * 16 / 9 + 48,
+                        child: ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: series.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: 14),
+                          itemBuilder: (context, index) => StoryPosterCard(
+                            width: cardWidth,
+                            series: series[index],
+                            onTap: () => _openSeries(context, series[index]),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 32),
                 ];
@@ -294,18 +309,27 @@ class _FeaturedStory extends StatelessWidget {
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.title);
+  const _SectionTitle(this.title, {this.onSeeAll});
   final String title;
+  final VoidCallback? onSeeAll;
 
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Text(
-      title,
-      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-        color: VelaColors.ink,
-        fontWeight: FontWeight.w800,
-      ),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: VelaColors.ink,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        if (onSeeAll != null)
+          TextButton(onPressed: onSeeAll, child: const Text('See all')),
+      ],
     ),
   );
 }

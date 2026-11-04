@@ -6,23 +6,28 @@ import '../../stories/models/story_models.dart';
 import 'story_artwork.dart';
 
 class StoryPosterCard extends StatelessWidget {
-  const StoryPosterCard({super.key, required this.series, required this.onTap});
+  const StoryPosterCard({
+    super.key,
+    required this.width,
+    required this.series,
+    required this.onTap,
+  });
 
+  final double width;
   final StorySeries series;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) => SizedBox(
-    width: 150,
+    width: width,
     child: InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            height: 190,
-            width: 150,
+          AspectRatio(
+            aspectRatio: 9 / 16,
             child: StoryArtwork(
               thumbnail: series.thumbnailUrl ?? series.thumbnail,
               borderRadius: 16,

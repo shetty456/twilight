@@ -43,8 +43,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                       (item) =>
                           item.title.toLowerCase().contains(query) ||
                           (item.description ?? '').toLowerCase().contains(
-                                query,
-                              ),
+                            query,
+                          ),
                     )
                     .toList();
                 if (results.isEmpty) {
@@ -64,13 +64,16 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 return LayoutBuilder(
                   builder: (context, constraints) {
                     final columns = constraints.maxWidth < 500 ? 2 : 3;
+                    final tileWidth =
+                        (constraints.maxWidth - 40 - 14 * (columns - 1)) /
+                        columns;
                     return GridView.builder(
                       padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: columns,
                         crossAxisSpacing: 14,
                         mainAxisSpacing: 18,
-                        childAspectRatio: 0.65,
+                        mainAxisExtent: tileWidth * 16 / 9 + 52,
                       ),
                       itemCount: results.length,
                       itemBuilder: (context, index) {
@@ -85,7 +88,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
+                              AspectRatio(
+                                aspectRatio: 9 / 16,
                                 child: StoryArtwork(
                                   thumbnail:
                                       item.thumbnailUrl ?? item.thumbnail,
