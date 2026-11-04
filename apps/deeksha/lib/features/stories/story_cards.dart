@@ -27,7 +27,7 @@ class StoryPosterCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AspectRatio(
-            aspectRatio: 9 / 16,
+            aspectRatio: 4 / 5,
             child: StoryArtwork(
               thumbnail: series.thumbnailUrl ?? series.thumbnail,
               borderRadius: 10,

@@ -21,60 +21,66 @@ class _MemoryStorage implements StorageService {
 }
 
 void main() {
-  testWidgets(
-    'story cards fit narrow screens and Search tab opens the catalog',
-    (tester) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets('short portrait cards show two and a third on mobile', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            seriesProvider.overrideWith(
-              (ref) async => const [
-                StorySeries(id: 'one', title: 'Evening Stories'),
-                StorySeries(id: 'two', title: 'The Quiet Path'),
-                StorySeries(id: 'three', title: 'Moonlit Moments'),
-                StorySeries(id: 'four', title: 'The Lotus Lake'),
-              ],
-            ),
-            listenerLibraryProvider.overrideWith(
-              (ref) =>
-                  ListenerLibraryController(Future.value(_MemoryStorage())),
-            ),
-          ],
-          child: const MaterialApp(home: ListenerShell()),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('Stories for you'), findsOneWidget);
-      expect(find.text('See all'), findsNothing);
-      expect(tester.takeException(), isNull);
-      final posterArtwork = find.descendant(
-        of: find.byType(StoryPosterCard).first,
-        matching: find.byType(StoryArtwork),
-      );
-      final posterSize = tester.getSize(posterArtwork);
-      expect(posterSize.width / posterSize.height, closeTo(9 / 16, 0.001));
-      expect(
-        tester.getTopRight(find.byType(StoryPosterCard).at(2)).dx,
-        lessThanOrEqualTo(370),
-      );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          seriesProvider.overrideWith(
+            (ref) async => const [
+              StorySeries(id: 'one', title: 'Evening Stories'),
+              StorySeries(id: 'two', title: 'The Quiet Path'),
+              StorySeries(id: 'three', title: 'Moonlit Moments'),
+              StorySeries(id: 'four', title: 'The Lotus Lake'),
+            ],
+          ),
+          listenerLibraryProvider.overrideWith(
+            (ref) => ListenerLibraryController(Future.value(_MemoryStorage())),
+          ),
+        ],
+        child: const MaterialApp(home: ListenerShell()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Stories for you'), findsOneWidget);
+    expect(find.text('See all'), findsNothing);
+    expect(tester.takeException(), isNull);
+    final posterArtwork = find.descendant(
+      of: find.byType(StoryPosterCard).first,
+      matching: find.byType(StoryArtwork),
+    );
+    final posterSize = tester.getSize(posterArtwork);
+    expect(posterSize.width / posterSize.height, closeTo(4 / 5, 0.001));
+    expect(posterSize.height, lessThan(190));
+    final thirdCard = find.byType(StoryPosterCard).at(2);
+    final thirdVisibleFraction =
+        (390 - tester.getTopLeft(thirdCard).dx) /
+        tester.getSize(thirdCard).width;
+    expect(thirdVisibleFraction, closeTo(1 / 3, 0.02));
 
-      tester.view.physicalSize = const Size(320, 700);
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-      expect(
-        tester.getTopRight(find.byType(StoryPosterCard).at(2)).dx,
-        lessThanOrEqualTo(300),
-      );
+    tester.view.physicalSize = const Size(320, 700);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    final thirdVisibleFractionNarrow =
+        (320 - tester.getTopLeft(thirdCard).dx) /
+        tester.getSize(thirdCard).width;
+    expect(thirdVisibleFractionNarrow, closeTo(1 / 3, 0.02));
+    await tester.drag(
+      find.byType(StoryPosterCard).first,
+      const Offset(-180, 0),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('The Lotus Lake'), findsOneWidget);
 
-      await tester.tap(find.text('Search'));
-      await tester.pumpAndSettle();
-      expect(find.text('The Quiet Path'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    },
-  );
+    await tester.tap(find.text('Search'));
+    await tester.pumpAndSettle();
+    expect(find.text('The Quiet Path'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

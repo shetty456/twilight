@@ -106,9 +106,9 @@ class HomePage extends ConsumerWidget {
                     LayoutBuilder(
                       builder: (context, constraints) {
                         final cardWidth =
-                            (constraints.maxWidth - 40 - 14 * 2) / 3;
+                            (constraints.maxWidth - 20 - 14 * 2) * 3 / 7;
                         return SizedBox(
-                          height: cardWidth * 16 / 9 + 48,
+                          height: cardWidth * 5 / 4 + 48,
                           child: ListView.separated(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             scrollDirection: Axis.horizontal,
