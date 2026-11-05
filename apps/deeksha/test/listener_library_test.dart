@@ -25,6 +25,29 @@ class _MemoryStorage implements StorageService {
   }
 }
 
+class _FailingStorage implements StorageService {
+  int writes = 0;
+
+  @override
+  Future<String?> read(String key) async => throw StateError('Read failed');
+  @override
+  Future<void> write(String key, String value) async {
+    writes++;
+  }
+
+  @override
+  Future<void> delete(String key) async {}
+  @override
+  Future<void> clear() async {}
+}
+
+class _FailingWriteStorage extends _MemoryStorage {
+  @override
+  Future<void> write(String key, String value) async {
+    throw StateError('Write failed');
+  }
+}
+
 void main() {
   const series = StorySeries(
     id: 'series-1',
@@ -70,4 +93,29 @@ void main() {
       restored.dispose();
     },
   );
+
+  test(
+    'a failed library read remains an error and cannot overwrite data',
+    () async {
+      final storage = _FailingStorage();
+      final controller = ListenerLibraryController(Future.value(storage));
+      await controller.ready;
+
+      expect(controller.state.hasError, isTrue);
+      await controller.toggleSaved(series);
+      expect(storage.writes, 0);
+      controller.dispose();
+    },
+  );
+
+  test('a failed library write is shown as an error', () async {
+    final controller = ListenerLibraryController(
+      Future.value(_FailingWriteStorage()),
+    );
+    await controller.ready;
+    await controller.toggleSaved(series);
+
+    expect(controller.state.hasError, isTrue);
+    controller.dispose();
+  });
 }

@@ -102,20 +102,27 @@ class ListenerLibraryController
         ListenerLibraryState.fromJson,
       );
       if (mounted) state = AsyncData(library ?? const ListenerLibraryState());
-    } catch (_) {
-      if (mounted) state = const AsyncData(ListenerLibraryState());
+    } catch (error, stackTrace) {
+      if (mounted) state = AsyncError(error, stackTrace);
     }
   }
 
-  Future<void> _persist(ListenerLibraryState next) {
+  Future<bool> _persist(ListenerLibraryState next) async {
     _pendingWrite = _pendingWrite.then(
       (_) => _preferences.writeJson('library', next, (value) => value.toJson()),
     );
-    return _pendingWrite;
+    try {
+      await _pendingWrite;
+      return true;
+    } catch (error, stackTrace) {
+      if (mounted) state = AsyncError(error, stackTrace);
+      return false;
+    }
   }
 
   Future<void> toggleSaved(StorySeries series) async {
     await _ready;
+    if (state.hasError) return;
     final current = state.valueOrNull ?? const ListenerLibraryState();
     final saved = current.isSaved(series.id)
         ? current.saved.where((item) => item.id != series.id).toList()
@@ -132,6 +139,7 @@ class ListenerLibraryController
     required Duration duration,
   }) async {
     await _ready;
+    if (state.hasError) return;
     final current = state.valueOrNull ?? const ListenerLibraryState();
     final recent = [
       RecentListen(
@@ -150,6 +158,7 @@ class ListenerLibraryController
 
   Future<void> removeRecent(String episodeId) async {
     await _ready;
+    if (state.hasError) return;
     final current = state.valueOrNull ?? const ListenerLibraryState();
     final next = ListenerLibraryState(
       saved: current.saved,
@@ -163,8 +172,11 @@ class ListenerLibraryController
 
   Future<void> clear() async {
     await _ready;
+    if (state.hasError) throw StateError('Could not open your library.');
     const next = ListenerLibraryState();
     if (mounted) state = const AsyncData(next);
-    await _persist(next);
+    if (!await _persist(next)) {
+      throw StateError('Could not clear your library.');
+    }
   }
 }

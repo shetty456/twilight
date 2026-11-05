@@ -14,10 +14,39 @@ class StoryHomeSkeleton extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 420),
             child: const AspectRatio(
               aspectRatio: 5 / 6,
-              child: AppSkeletonBox(
-                width: double.infinity,
-                height: double.infinity,
-                radius: 14,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  AppSkeletonBox(
+                    width: double.infinity,
+                    height: double.infinity,
+                    radius: 14,
+                  ),
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: AppSkeletonBox(width: 78, height: 28, radius: 8),
+                  ),
+                  Positioned(
+                    left: 18,
+                    right: 18,
+                    bottom: 18,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AppSkeletonLines(width: 190, lines: 2),
+                        SizedBox(height: 12),
+                        Row(
+                          children: [
+                            AppSkeletonBox(width: 100, height: 48, radius: 10),
+                            SizedBox(width: 8),
+                            AppSkeletonBox(width: 48, height: 48, radius: 10),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

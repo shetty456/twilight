@@ -43,6 +43,7 @@ class SessionController extends StateNotifier<AsyncValue<bool>> {
   }
 
   Future<void> restore() async {
+    state = const AsyncLoading();
     state = await AsyncValue.guard(_repository.hasSession);
   }
 

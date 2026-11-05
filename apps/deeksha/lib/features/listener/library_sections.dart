@@ -142,7 +142,11 @@ class LibrarySections extends ConsumerWidget {
           ),
         ],
       ),
-      error: (_, __) => const Text('Could not open your library.'),
+      error: (_, __) => AppErrorState(
+        title: 'Could not open your library',
+        description: 'Please try again before saving or listening.',
+        onRetry: () => ref.invalidate(listenerLibraryProvider),
+      ),
     );
   }
 }

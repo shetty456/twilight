@@ -7,6 +7,7 @@ import '../../config/providers.dart';
 import 'series_page.dart';
 import 'story_artwork.dart';
 import 'story_loading.dart';
+import 'story_request_error.dart';
 
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
@@ -49,17 +50,14 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                       )
                       .toList();
                   if (results.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Text(
-                          _query.isEmpty
-                              ? 'No stories available yet.'
-                              : 'No stories match your search.',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: VelaColors.plum),
-                        ),
-                      ),
+                    return AppEmptyState(
+                      title: _query.isEmpty ? 'No stories yet' : 'No matches',
+                      description: _query.isEmpty
+                          ? 'Stories will appear here as soon as they are published.'
+                          : 'Try another title or keyword.',
+                      icon: _query.isEmpty
+                          ? Icons.auto_stories_outlined
+                          : Icons.search_off_rounded,
                     );
                   }
                   return LayoutBuilder(
@@ -117,12 +115,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   );
                 },
                 loading: () => const StoryGridSkeleton(),
-                error: (_, __) => Center(
-                  child: AppButton(
-                    label: 'Try again',
-                    variant: AppButtonVariant.secondary,
-                    onPressed: () => ref.invalidate(seriesProvider),
-                  ),
+                error: (error, _) => StoryRequestError(
+                  error: error,
+                  subject: 'stories',
+                  onRetry: () => ref.invalidate(seriesProvider),
                 ),
               ),
             ),

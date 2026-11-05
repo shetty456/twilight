@@ -13,6 +13,7 @@ import 'series_page.dart';
 import 'story_artwork.dart';
 import 'story_cards.dart';
 import 'story_loading.dart';
+import 'story_request_error.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -24,7 +25,8 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stories = ref.watch(seriesProvider);
-    final library = ref.watch(listenerLibraryProvider).valueOrNull;
+    final libraryState = ref.watch(listenerLibraryProvider);
+    final library = libraryState.valueOrNull;
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
@@ -32,14 +34,35 @@ class HomePage extends ConsumerWidget {
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
+              if (libraryState.hasError)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  child: Column(
+                    children: [
+                      const AppMessageBox(
+                        message:
+                            'Your library is unavailable. Saving is paused.',
+                        kind: AppMessageKind.warning,
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            ref.invalidate(listenerLibraryProvider),
+                        child: const Text('Retry library'),
+                      ),
+                    ],
+                  ),
+                ),
               ...stories.when(
                 data: (series) {
                   if (series.isEmpty) {
-                    return const [
-                      Padding(
-                        padding: EdgeInsets.all(24),
-                        child: _HomeNotice(
-                          'Stories will appear here as soon as they are published.',
+                    return [
+                      SizedBox(
+                        height: MediaQuery.sizeOf(context).height * 0.6,
+                        child: const AppEmptyState(
+                          title: 'No stories yet',
+                          description:
+                              'Stories will appear here as soon as they are published.',
+                          icon: Icons.auto_stories_outlined,
                         ),
                       ),
                     ];
@@ -100,9 +123,11 @@ class HomePage extends ConsumerWidget {
                             );
                           }
                         },
-                        onSave: () => ref
-                            .read(listenerLibraryProvider.notifier)
-                            .toggleSaved(featured),
+                        onSave: libraryState.hasError
+                            ? null
+                            : () => ref
+                                  .read(listenerLibraryProvider.notifier)
+                                  .toggleSaved(featured),
                       ),
                     ),
                     if (otherStories.isNotEmpty) ...[
@@ -138,21 +163,13 @@ class HomePage extends ConsumerWidget {
                   ];
                 },
                 loading: () => const [StoryHomeSkeleton()],
-                error: (_, __) => [
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        const _HomeNotice(
-                          'Could not load stories. Check your connection.',
-                        ),
-                        const SizedBox(height: 12),
-                        AppButton(
-                          label: 'Try again',
-                          variant: AppButtonVariant.secondary,
-                          onPressed: () => ref.invalidate(seriesProvider),
-                        ),
-                      ],
+                error: (error, _) => [
+                  SizedBox(
+                    height: MediaQuery.sizeOf(context).height * 0.6,
+                    child: StoryRequestError(
+                      error: error,
+                      subject: 'stories',
+                      onRetry: () => ref.invalidate(seriesProvider),
                     ),
                   ),
                 ],
@@ -205,7 +222,7 @@ class _FeaturedStory extends StatelessWidget {
   final bool saved;
   final VoidCallback onOpen;
   final VoidCallback onStart;
-  final VoidCallback onSave;
+  final VoidCallback? onSave;
 
   @override
   Widget build(BuildContext context) => Center(
@@ -377,20 +394,5 @@ class _SectionTitle extends StatelessWidget {
         fontWeight: FontWeight.w800,
       ),
     ),
-  );
-}
-
-class _HomeNotice extends StatelessWidget {
-  const _HomeNotice(this.message);
-  final String message;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(
-      color: VelaColors.blush,
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Text(message, style: const TextStyle(color: VelaColors.ink)),
   );
 }

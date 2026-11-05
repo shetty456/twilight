@@ -9,6 +9,7 @@ import '../listener/listener_library.dart';
 import 'episode_page.dart';
 import 'story_artwork.dart';
 import 'story_loading.dart';
+import 'story_request_error.dart';
 
 class SeriesPage extends ConsumerWidget {
   const SeriesPage({super.key, required this.series});
@@ -17,41 +18,40 @@ class SeriesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final episodes = ref.watch(episodesProvider(series.id));
-    final saved =
-        ref.watch(listenerLibraryProvider).valueOrNull?.isSaved(series.id) ??
-        false;
+    final libraryState = ref.watch(listenerLibraryProvider);
+    final saved = libraryState.valueOrNull?.isSaved(series.id) ?? false;
     return Scaffold(
-      appBar: AppBar(title: const Text('Story details')),
+      appBar: AppBar(toolbarHeight: 48, leading: const BackButton()),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          12,
+          20,
+          56 + MediaQuery.viewPaddingOf(context).bottom,
+        ),
         children: [
-          SizedBox(
-            height: 280,
-            child: StoryArtwork(
-              thumbnail: series.thumbnailUrl ?? series.thumbnail,
-              borderRadius: 16,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            series.title,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: VelaColors.ink,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            series.description?.isNotEmpty == true
-                ? series.description!
+          _StoryOverview(
+            title: series.title,
+            description: series.description?.trim().isNotEmpty == true
+                ? series.description!.trim()
                 : 'A story to enjoy one episode at a time.',
-            style: const TextStyle(
-              fontSize: 16,
-              height: 1.5,
-              color: VelaColors.plum,
-            ),
+            thumbnail: series.thumbnailUrl ?? series.thumbnail,
           ),
           const SizedBox(height: 24),
+          if (libraryState.hasError) ...[
+            const AppMessageBox(
+              message: 'Your library is unavailable. Saving is paused.',
+              kind: AppMessageKind.warning,
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: () => ref.invalidate(listenerLibraryProvider),
+                child: const Text('Retry library'),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           if (episodes.valueOrNull?.isNotEmpty == true) ...[
             Row(
               children: [
@@ -78,9 +78,11 @@ class SeriesPage extends ConsumerWidget {
                     tooltip: saved
                         ? 'Remove from My Library'
                         : 'Save to My Library',
-                    onPressed: () => ref
-                        .read(listenerLibraryProvider.notifier)
-                        .toggleSaved(series),
+                    onPressed: libraryState.hasError
+                        ? null
+                        : () => ref
+                              .read(listenerLibraryProvider.notifier)
+                              .toggleSaved(series),
                     icon: Icon(
                       saved
                           ? Icons.bookmark_rounded
@@ -99,9 +101,11 @@ class SeriesPage extends ConsumerWidget {
                   : Icons.bookmark_add_outlined,
               variant: AppButtonVariant.secondary,
               expanded: true,
-              onPressed: () => ref
-                  .read(listenerLibraryProvider.notifier)
-                  .toggleSaved(series),
+              onPressed: libraryState.hasError
+                  ? null
+                  : () => ref
+                        .read(listenerLibraryProvider.notifier)
+                        .toggleSaved(series),
             ),
             const SizedBox(height: 30),
           ],
@@ -116,7 +120,13 @@ class SeriesPage extends ConsumerWidget {
           const SizedBox(height: 14),
           ...episodes.when(
             data: (items) => items.isEmpty
-                ? [const Text('No episodes are published yet.')]
+                ? [
+                    const AppEmptyState(
+                      title: 'No episodes yet',
+                      description: 'Episodes will appear here when published.',
+                      icon: Icons.headphones_outlined,
+                    ),
+                  ]
                 : [
                     for (final episode in items) ...[
                       Material(
@@ -172,11 +182,10 @@ class SeriesPage extends ConsumerWidget {
                   ],
             loading: () => [const EpisodeListSkeleton()],
             error: (error, _) => [
-              const Text('Could not load episodes.'),
-              AppButton(
-                label: 'Try again',
-                variant: AppButtonVariant.secondary,
-                onPressed: () => ref.invalidate(episodesProvider(series.id)),
+              StoryRequestError(
+                error: error,
+                subject: 'episodes',
+                onRetry: () => ref.invalidate(episodesProvider(series.id)),
               ),
             ],
           ),
@@ -184,4 +193,94 @@ class SeriesPage extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _StoryOverview extends StatefulWidget {
+  const _StoryOverview({
+    required this.title,
+    required this.description,
+    required this.thumbnail,
+  });
+
+  final String title;
+  final String description;
+  final String? thumbnail;
+
+  @override
+  State<_StoryOverview> createState() => _StoryOverviewState();
+}
+
+class _StoryOverviewState extends State<_StoryOverview> {
+  bool _expanded = false;
+
+  static const _descriptionStyle = TextStyle(
+    fontSize: 14,
+    height: 1.4,
+    color: VelaColors.plum,
+  );
+
+  @override
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      SizedBox(
+        width: 80,
+        height: 100,
+        child: StoryArtwork(thumbnail: widget.thumbnail, borderRadius: 10),
+      ),
+      const SizedBox(width: 16),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.title,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: VelaColors.ink,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 6),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final painter = TextPainter(
+                  text: TextSpan(
+                    text: widget.description,
+                    style: _descriptionStyle,
+                  ),
+                  textDirection: Directionality.of(context),
+                  textScaler: MediaQuery.textScalerOf(context),
+                  maxLines: 3,
+                )..layout(maxWidth: constraints.maxWidth);
+                final hasOverflow = painter.didExceedMaxLines;
+                painter.dispose();
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.description,
+                      maxLines: _expanded ? null : 3,
+                      overflow: _expanded ? null : TextOverflow.ellipsis,
+                      style: _descriptionStyle,
+                    ),
+                    if (hasOverflow)
+                      TextButton(
+                        onPressed: () => setState(() => _expanded = !_expanded),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(0, 32),
+                          alignment: Alignment.centerLeft,
+                        ),
+                        child: Text(_expanded ? 'Read less' : 'Read more'),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
 }

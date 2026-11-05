@@ -237,9 +237,9 @@ class _PhoneSignInPageState extends ConsumerState<PhoneSignInPage> {
                 _buildCodeBoxes(),
               if (_error != null || widget.startupError != null) ...[
                 const SizedBox(height: 12),
-                Text(
-                  _error ?? widget.startupError!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                AppMessageBox(
+                  message: _error ?? widget.startupError!,
+                  kind: AppMessageKind.error,
                 ),
               ],
               const SizedBox(height: 22),

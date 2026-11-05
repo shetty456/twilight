@@ -123,33 +123,16 @@ class _AuthGate extends ConsumerWidget {
         .when(
           data: (signedIn) =>
               signedIn ? const ListenerShell() : const PhoneSignInPage(),
-          loading: () => const _SessionLoading(),
-          error: (error, _) => PhoneSignInPage(startupError: error.toString()),
+          loading: () => const ListenerShellLoading(),
+          error: (_, __) => Scaffold(
+            body: SafeArea(
+              child: AppErrorState(
+                title: 'Could not restore your session',
+                description: 'Please try again.',
+                onRetry: () => ref.read(sessionProvider.notifier).restore(),
+              ),
+            ),
+          ),
         );
   }
-}
-
-class _SessionLoading extends StatelessWidget {
-  const _SessionLoading();
-
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-    body: SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(28, 36, 28, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppSkeletonBox(width: 64, height: 64, radius: 32),
-            SizedBox(height: 32),
-            AppSkeletonLines(width: 170),
-            SizedBox(height: 12),
-            AppSkeletonLines(width: 240, lines: 2),
-            SizedBox(height: 42),
-            AppSkeletonBox(width: double.infinity, height: 56, radius: 12),
-          ],
-        ),
-      ),
-    ),
-  );
 }

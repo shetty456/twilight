@@ -28,6 +28,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   bool _busy = false;
 
   Future<void> _signOut() async {
+    if (ref.read(listenerLibraryProvider).hasError) {
+      AppSnackbar.show(
+        context,
+        'Open your library before signing out.',
+        kind: AppMessageKind.error,
+      );
+      return;
+    }
     final confirmed = await AppConfirmationSheet.show(
       context,
       title: 'Sign out?',
@@ -59,10 +67,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final libraryState = ref.watch(listenerLibraryProvider);
     final library = libraryState.valueOrNull;
     final phoneState = ref.watch(signedInPhoneProvider);
-    final savedCount = libraryState.isLoading
+    final savedCount = libraryState.isLoading || libraryState.hasError
         ? null
         : library?.saved.length ?? 0;
-    final recentCount = libraryState.isLoading
+    final recentCount = libraryState.isLoading || libraryState.hasError
         ? null
         : library?.recent.length ?? 0;
     return Scaffold(
@@ -75,6 +83,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               recentCount: recentCount,
               phone: phoneState.valueOrNull,
               phoneLoading: phoneState.isLoading,
+              libraryError: libraryState.hasError,
               completion: widget.profileCompletion,
             ),
             const SizedBox(height: 24),
@@ -119,6 +128,7 @@ class _ProfileHeader extends StatelessWidget {
     required this.recentCount,
     required this.phone,
     required this.phoneLoading,
+    required this.libraryError,
     this.completion,
   });
 
@@ -126,6 +136,7 @@ class _ProfileHeader extends StatelessWidget {
   final int? recentCount;
   final String? phone;
   final bool phoneLoading;
+  final bool libraryError;
   final double? completion;
 
   @override
@@ -168,11 +179,19 @@ class _ProfileHeader extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _ProfileStat(count: savedCount, label: 'Series saved'),
+              child: _ProfileStat(
+                count: savedCount,
+                label: 'Series saved',
+                unavailable: libraryError,
+              ),
             ),
             Container(width: 1, height: 40, color: VelaColors.blush),
             Expanded(
-              child: _ProfileStat(count: recentCount, label: 'Recent listens'),
+              child: _ProfileStat(
+                count: recentCount,
+                label: 'Recent listens',
+                unavailable: libraryError,
+              ),
             ),
           ],
         ),
@@ -207,15 +226,22 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 class _ProfileStat extends StatelessWidget {
-  const _ProfileStat({required this.count, required this.label});
+  const _ProfileStat({
+    required this.count,
+    required this.label,
+    required this.unavailable,
+  });
 
   final int? count;
   final String label;
+  final bool unavailable;
 
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      if (count == null)
+      if (unavailable)
+        const Text('—', style: TextStyle(color: VelaColors.plum, fontSize: 20))
+      else if (count == null)
         const AppSkeletonBox(width: 24, height: 26, radius: 5)
       else
         Text(

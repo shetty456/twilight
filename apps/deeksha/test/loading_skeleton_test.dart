@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:deeksha/config/providers.dart';
 import 'package:deeksha/features/listener/listener_library.dart';
+import 'package:deeksha/features/listener/listener_shell.dart';
 import 'package:deeksha/features/listener/profile_page.dart';
 import 'package:deeksha/features/stories/library_page.dart';
 import 'package:deeksha/features/stories/search_page.dart';
@@ -25,6 +26,25 @@ class _MemoryStorage implements StorageService {
 }
 
 void main() {
+  testWidgets('Startup uses the home skeleton and navigation layout', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MaterialApp(home: ListenerShellLoading()));
+
+    expect(find.byType(StoryHomeSkeleton), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Search'), findsOneWidget);
+    expect(find.text('Profile'), findsOneWidget);
+    final heroSkeleton = tester.getSize(find.byType(AppSkeletonBox).first);
+    expect(heroSkeleton.width / heroSkeleton.height, closeTo(5 / 6, 0.001));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Home and Search show layout skeletons while stories load', (
     tester,
   ) async {
