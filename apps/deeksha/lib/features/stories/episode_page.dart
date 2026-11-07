@@ -1,28 +1,27 @@
 import 'dart:async';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui/ui.dart';
+import 'package:twilight_audio/twilight_audio.dart';
 
 import '../../app.dart';
 import '../../config/providers.dart';
-import '../../data/origin_repository.dart';
 import '../../stories/models/story_models.dart';
-import '../listener/listener_library.dart';
 import 'story_artwork.dart';
+import 'story_playback.dart';
 
 class EpisodePage extends ConsumerStatefulWidget {
   const EpisodePage({
     super.key,
     required this.episode,
     required this.series,
-    this.audioPlayer,
+    this.playback,
   });
   final StoryEpisode episode;
   final StorySeries series;
-  final AudioPlayer? audioPlayer;
+  final StoryPlaybackSession? playback;
 
   @override
   ConsumerState<EpisodePage> createState() => _EpisodePageState();
@@ -30,261 +29,110 @@ class EpisodePage extends ConsumerStatefulWidget {
 
 class _EpisodePageState extends ConsumerState<EpisodePage>
     with SingleTickerProviderStateMixin {
-  late final AudioPlayer _player;
-  late final ListenerLibraryController _library;
-  OriginStoriesRepository? _repository;
+  late final StoryPlaybackSession _session;
+  late final BackgroundAudioQueue _queue;
   late final AnimationController _disc;
   late StoryEpisode _episode = widget.episode;
-  late final StreamSubscription<Duration> _positionSubscription;
-  late final StreamSubscription<Duration> _durationSubscription;
-  late final StreamSubscription<PlayerState> _stateSubscription;
-  late final StreamSubscription<void> _completeSubscription;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
+  Duration _bufferedPosition = Duration.zero;
   bool _playing = false;
   bool _busy = false;
   bool _ready = false;
   bool _preparing = true;
-  int _loadSerial = 0;
-  DateTime? _preparedAt;
-  int _lastLocalSave = 0;
-  bool _completed = false;
+  bool _buffering = false;
   String? _error;
   bool _offlineError = false;
 
   @override
   void initState() {
     super.initState();
-    _player = widget.audioPlayer ?? AudioPlayer();
-    _library = ref.read(listenerLibraryProvider.notifier);
+    _session = widget.playback ?? ref.read(storyPlaybackProvider);
+    _queue = _session.queue;
     _disc = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 18),
     );
-    _positionSubscription = _player.onPositionChanged.listen((position) {
-      if (mounted) {
-        setState(() => _position = position);
-        if (position.inSeconds - _lastLocalSave >= 10) {
-          _lastLocalSave = position.inSeconds;
-          unawaited(_saveLocal());
-        }
-      }
-    });
-    _durationSubscription = _player.onDurationChanged.listen((duration) {
-      if (mounted) setState(() => _duration = duration);
-    });
-    _stateSubscription = _player.onPlayerStateChanged.listen((state) {
-      if (!mounted) return;
-      final playing = state == PlayerState.playing;
-      setState(() => _playing = playing);
-      if (playing && !_disc.isAnimating) _disc.repeat();
-      if (!playing && _disc.isAnimating) _disc.stop();
-    });
-    _completeSubscription = _player.onPlayerComplete.listen((_) {
-      if (mounted) unawaited(_onComplete());
-    });
-    unawaited(_prepare());
+    _queue.addListener(_refresh);
+    _refresh();
+    unawaited(_open());
   }
 
-  Future<void> _saveLocal() => _completed
-      ? Future.value()
-      : _library.recordListening(
-          series: widget.series,
-          episode: _episode,
-          position: _position,
-          duration: _duration,
-        );
+  Future<void> _open() async {
+    await _session.open(
+      widget.series,
+      widget.episode,
+      knownEpisodes: ref.read(episodesProvider(widget.series.id)).valueOrNull,
+    );
+    if (mounted) _refresh();
+  }
+
+  void _refresh() {
+    if (!mounted) return;
+    final sameSeries = _session.series?.id == widget.series.id;
+    final activeEpisode = sameSeries ? _session.currentEpisode : null;
+    final error = sameSeries ? _queue.error : null;
+    setState(() {
+      if (activeEpisode != null) _episode = activeEpisode;
+      _position = sameSeries ? _queue.position : Duration.zero;
+      _duration = sameSeries ? _queue.duration : Duration.zero;
+      _bufferedPosition = sameSeries ? _queue.bufferedPosition : Duration.zero;
+      _playing = sameSeries && _queue.playing;
+      _ready = sameSeries && _queue.ready;
+      _preparing = !sameSeries || _queue.loading;
+      _buffering = sameSeries && _queue.buffering && !_queue.loading;
+      _offlineError =
+          error is NetworkException &&
+          error.message == 'No internet connection';
+      _error = error == null
+          ? null
+          : error is StateError
+          ? error.message.toString()
+          : _offlineError
+          ? 'No internet connection'
+          : 'Audio could not load. Please try again.';
+    });
+    if (_playing && !_disc.isAnimating) _disc.repeat();
+    if (!_playing && _disc.isAnimating) _disc.stop();
+  }
 
   @override
   void dispose() {
-    if (_position.inSeconds > 0 && !_completed) unawaited(_saveLocal());
-    if (_position.inSeconds > 0 && _repository != null) {
-      unawaited(
-        _repository!
-            .saveProgress(_episode.id, _position.inMilliseconds / 1000)
-            .catchError((Object _) {}),
-      );
-    }
-    _positionSubscription.cancel();
-    _durationSubscription.cancel();
-    _stateSubscription.cancel();
-    _completeSubscription.cancel();
+    _queue.removeListener(_refresh);
     _disc.dispose();
-    unawaited(_player.dispose());
     super.dispose();
   }
 
   Future<void> _toggle() async {
     if (_busy || !_ready) return;
-    setState(() {
-      _busy = true;
-      _error = null;
-      _offlineError = false;
-    });
+    setState(() => _busy = true);
     try {
       if (_playing) {
-        await _player.pause();
-        await _saveLocal();
-        await _repository!.saveProgress(
-          _episode.id,
-          _position.inMilliseconds / 1000,
-        );
+        await _session.pause();
       } else {
-        // Origin signs links for one hour. Refresh before a stale source plays.
-        if (_preparedAt != null &&
-            DateTime.now().difference(_preparedAt!) >=
-                const Duration(minutes: 55)) {
-          await _prepare(autoplay: true);
-          return;
-        }
-        _completed = false;
-        if (_duration > Duration.zero && _position >= _duration) {
-          await _player.seek(Duration.zero);
-        }
-        await _player.resume();
-        await _saveLocal();
-      }
-    } catch (error) {
-      if (mounted) {
-        setState(() {
-          _offlineError =
-              error is NetworkException &&
-              error.message == 'No internet connection';
-          _error = _offlineError
-              ? 'No internet connection'
-              : 'Audio could not start. Please try again.';
-        });
+        _queue.play();
       }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
-  Future<void> _prepare({bool autoplay = false}) async {
-    final serial = ++_loadSerial;
-    final episode = _episode;
-    final resumeAt = _position > Duration.zero
-        ? _position
-        : Duration(
-            milliseconds:
-                ((ref
-                                .read(listenerLibraryProvider)
-                                .valueOrNull
-                                ?.recent
-                                .where((item) => item.episode.id == episode.id)
-                                .firstOrNull
-                                ?.positionSeconds ??
-                            0) *
-                        1000)
-                    .round(),
-          );
-    setState(() {
-      _preparing = true;
-      _ready = false;
-      _busy = false;
-      _error = null;
-      _offlineError = false;
-    });
-    try {
-      await _player.stop();
-      if (!mounted || serial != _loadSerial) return;
-      final repository = ref.read(storiesRepositoryProvider);
-      _repository ??= repository;
-      final media = await repository.media(episode.id);
-      if (!mounted || serial != _loadSerial) return;
-      if (media.audioUrl == null || media.audioUrl!.isEmpty) {
-        throw StateError('Audio is being prepared for this episode.');
-      }
-      await _player.setSource(UrlSource(media.audioUrl!));
-      if (!mounted || serial != _loadSerial) return;
-      final duration = await _player.getDuration();
-      final canResume =
-          resumeAt > Duration.zero && (duration == null || resumeAt < duration);
-      if (canResume) {
-        await _player.seek(resumeAt);
-      }
-      if (!mounted || serial != _loadSerial) return;
-      setState(() {
-        _position = canResume ? resumeAt : Duration.zero;
-        _duration = duration ?? Duration.zero;
-        _lastLocalSave = _position.inSeconds;
-        _ready = true;
-        _preparing = false;
-        _preparedAt = DateTime.now();
-      });
-      if (autoplay) await _toggle();
-    } catch (error) {
-      if (!mounted || serial != _loadSerial) return;
-      setState(() {
-        _preparing = false;
-        _offlineError =
-            error is NetworkException &&
-            error.message == 'No internet connection';
-        _error = error is StateError
-            ? error.message.toString()
-            : _offlineError
-            ? 'No internet connection'
-            : 'Audio could not load. Please try again.';
-      });
-    }
-  }
+  Future<void> _prepare() => _queue.retry();
 
   Future<void> _selectEpisode(
     StoryEpisode episode, {
     bool autoplay = false,
   }) async {
     if (episode.id == _episode.id) return;
-    final previous = _episode;
-    final position = _position;
-    if (!_completed && position > Duration.zero) {
-      unawaited(_saveLocal());
-      unawaited(
-        _repository!
-            .saveProgress(previous.id, position.inMilliseconds / 1000)
-            .catchError((Object _) {}),
-      );
-    }
-    if (!mounted) return;
-    setState(() {
-      _episode = episode;
-      _completed = false;
-      _position = Duration.zero;
-      _duration = Duration.zero;
-    });
-    await _prepare(autoplay: autoplay);
+    await _session.open(
+      widget.series,
+      episode,
+      knownEpisodes: _session.episodes,
+      autoplay: autoplay,
+    );
   }
 
-  Future<void> _onComplete() async {
-    final completed = _episode;
-    _completed = true;
-    try {
-      await _library.removeRecent(completed.id);
-    } catch (_) {
-      // Continue the playlist even if the recent list cannot be updated.
-    }
-    if (!mounted || completed.id != _episode.id) return;
-    List<StoryEpisode> episodes;
-    try {
-      episodes = await ref.read(episodesProvider(widget.series.id).future);
-    } catch (_) {
-      return;
-    }
-    if (!mounted || completed.id != _episode.id) return;
-    final index = episodes.indexWhere((item) => item.id == completed.id);
-    if (index >= 0 && index + 1 < episodes.length) {
-      await _selectEpisode(episodes[index + 1], autoplay: true);
-    }
-  }
-
-  Future<void> _skip(int seconds) async {
-    final target = _position + Duration(seconds: seconds);
-    final clamped = target < Duration.zero
-        ? Duration.zero
-        : _duration > Duration.zero && target > _duration
-        ? _duration
-        : target;
-    await _player.seek(clamped);
-  }
+  Future<void> _skip(int seconds) => _queue.skip(Duration(seconds: seconds));
 
   String _time(Duration duration) {
     final minutes = duration.inMinutes.toString().padLeft(2, '0');
@@ -376,11 +224,13 @@ class _EpisodePageState extends ConsumerState<EpisodePage>
 
   @override
   Widget build(BuildContext context) {
-    final episodes = ref.watch(episodesProvider(widget.series.id)).valueOrNull;
-    final index = episodes?.indexWhere((item) => item.id == _episode.id) ?? -1;
-    final previous = index > 0 ? episodes![index - 1] : null;
-    final next = index >= 0 && index + 1 < (episodes?.length ?? 0)
-        ? episodes![index + 1]
+    final episodes =
+        ref.watch(episodesProvider(widget.series.id)).valueOrNull ??
+        _session.episodes;
+    final index = episodes.indexWhere((item) => item.id == _episode.id);
+    final previous = index > 0 ? episodes[index - 1] : null;
+    final next = index >= 0 && index + 1 < episodes.length
+        ? episodes[index + 1]
         : null;
     final maximum = _duration.inMilliseconds > 0
         ? _duration.inMilliseconds.toDouble()
@@ -434,10 +284,8 @@ class _EpisodePageState extends ConsumerState<EpisodePage>
                         IconButton(
                           tooltip: 'Episodes',
                           onPressed:
-                              !_preparing &&
-                                  !_busy &&
-                                  episodes?.isNotEmpty == true
-                              ? () => _showPlaylist(episodes!)
+                              !_preparing && !_busy && episodes.isNotEmpty
+                              ? () => _showPlaylist(episodes)
                               : null,
                           icon: const Icon(Icons.queue_music_rounded),
                         ),
@@ -521,8 +369,17 @@ class _EpisodePageState extends ConsumerState<EpisodePage>
                           maximum,
                         ),
                         max: maximum,
+                        secondaryTrackValue: _bufferedPosition.inMilliseconds
+                            .toDouble()
+                            .clamp(
+                              _position.inMilliseconds.toDouble().clamp(
+                                0,
+                                maximum,
+                              ),
+                              maximum,
+                            ),
                         onChanged: _ready && !_busy && _duration > Duration.zero
-                            ? (value) => _player.seek(
+                            ? (value) => _queue.seek(
                                 Duration(milliseconds: value.round()),
                               )
                             : null,
@@ -537,6 +394,14 @@ class _EpisodePageState extends ConsumerState<EpisodePage>
                           ],
                         ),
                       ),
+                      if (_buffering)
+                        const Text(
+                          'Buffering audio…',
+                          style: TextStyle(
+                            color: VelaColors.plum,
+                            fontSize: 12,
+                          ),
+                        ),
                       SizedBox(height: compact ? 4 : 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -597,13 +462,13 @@ class _EpisodePageState extends ConsumerState<EpisodePage>
                         isOffline: true,
                         message: 'No internet connection',
                         retryLabel: 'Retry audio',
-                        onRetry: _ready ? _toggle : _prepare,
+                        onRetry: _prepare,
                       )
                     else if (_error != null)
                       SizedBox(
                         height: 40,
                         child: TextButton(
-                          onPressed: _ready ? _toggle : _prepare,
+                          onPressed: _prepare,
                           child: Text(
                             'Retry audio · $_error',
                             maxLines: 1,

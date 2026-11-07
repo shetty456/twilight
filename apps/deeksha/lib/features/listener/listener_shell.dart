@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../app.dart';
 import '../stories/library_page.dart';
@@ -50,39 +51,42 @@ class _ListenerNavigationBar extends StatelessWidget {
   final ValueChanged<int>? onSelect;
 
   @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: const BoxDecoration(
-      color: VelaColors.cream,
-      border: Border(top: BorderSide(color: VelaColors.blush)),
-    ),
-    child: SafeArea(
-      top: false,
-      child: SizedBox(
-        height: 56,
-        child: Row(
-          children: [
-            _NavItem(
-              label: 'Home',
-              icon: Icons.home_outlined,
-              selectedIcon: Icons.home_rounded,
-              selected: selectedIndex == 0,
-              onTap: onSelect == null ? null : () => onSelect!(0),
-            ),
-            _NavItem(
-              label: 'Search',
-              icon: Icons.search_rounded,
-              selectedIcon: Icons.search_rounded,
-              selected: selectedIndex == 1,
-              onTap: onSelect == null ? null : () => onSelect!(1),
-            ),
-            _NavItem(
-              label: 'Profile',
-              icon: Icons.person_outline_rounded,
-              selectedIcon: Icons.person_rounded,
-              selected: selectedIndex == 2,
-              onTap: onSelect == null ? null : () => onSelect!(2),
-            ),
-          ],
+  Widget build(BuildContext context) => AnnotatedRegion<SystemUiOverlayStyle>(
+    value: VelaSystemUi.navigationStyle,
+    child: DecoratedBox(
+      decoration: const BoxDecoration(
+        color: VelaColors.surface,
+        border: Border(top: BorderSide(color: VelaColors.blush)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 56,
+          child: Row(
+            children: [
+              _NavItem(
+                label: 'Home',
+                icon: Icons.home_outlined,
+                selectedIcon: Icons.home_rounded,
+                selected: selectedIndex == 0,
+                onTap: onSelect == null ? null : () => onSelect!(0),
+              ),
+              _NavItem(
+                label: 'Search',
+                icon: Icons.search_rounded,
+                selectedIcon: Icons.search_rounded,
+                selected: selectedIndex == 1,
+                onTap: onSelect == null ? null : () => onSelect!(1),
+              ),
+              _NavItem(
+                label: 'Profile',
+                icon: Icons.person_outline_rounded,
+                selectedIcon: Icons.person_rounded,
+                selected: selectedIndex == 2,
+                onTap: onSelect == null ? null : () => onSelect!(2),
+              ),
+            ],
+          ),
         ),
       ),
     ),

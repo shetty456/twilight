@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:auth/auth.dart';
 import 'package:core/core.dart';
+import 'package:deeksha/app.dart';
 import 'package:deeksha/config/providers.dart';
 import 'package:deeksha/data/origin_repository.dart';
 import 'package:deeksha/features/auth/phone_sign_in_page.dart';
@@ -51,6 +52,67 @@ class _OtpAdapter implements HttpClientAdapter {
 }
 
 void main() {
+  testWidgets('phone focus is neutral and only invalid input is red', (
+    tester,
+  ) async {
+    const config = ApiConfig(
+      baseUrl: 'https://api.example.com/api/v1/',
+      environment: AppEnvironment.development,
+    );
+    final dio = Dio(BaseOptions(baseUrl: config.baseUrl))
+      ..httpClientAdapter = _OtpAdapter();
+    final tokens = _Tokens();
+    final repository = OriginPhoneAuthRepository(
+      DioClient(config, dio: dio, tokenStore: tokens),
+      tokens,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          apiConfigProvider.overrideWithValue(config),
+          phoneAuthRepositoryProvider.overrideWithValue(repository),
+        ],
+        child: const VelaFmApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final field = find.byType(TextField);
+    await tester.tap(field);
+    await tester.pump();
+    final theme = Theme.of(tester.element(field));
+    final focusedBorder =
+        theme.inputDecorationTheme.focusedBorder! as OutlineInputBorder;
+    expect(focusedBorder.borderSide.color, VelaColors.ink);
+    expect(
+      theme.inputDecorationTheme.floatingLabelStyle?.color,
+      VelaColors.ink,
+    );
+    expect(theme.textSelectionTheme.cursorColor, VelaColors.ink);
+    expect(tester.widget<TextField>(field).decoration?.errorText, isNull);
+
+    await tester.tap(find.text('Send code'));
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(field).decoration?.errorText,
+      'Enter a valid phone number with country code.',
+    );
+
+    await tester.enterText(field, '98765 43210');
+    await tester.pump();
+    expect(tester.widget<TextField>(field).decoration?.errorText, isNull);
+    await tester.tap(find.text('Send code'));
+    await tester.pumpAndSettle();
+    final activeDigit = tester.widget<Container>(
+      find.byKey(const ValueKey('otp-digit-0')),
+    );
+    final decoration = activeDigit.decoration! as BoxDecoration;
+    expect(decoration.border!.top.color, VelaColors.ink);
+
+    await tester.pumpWidget(const SizedBox());
+  });
+
   for (final environment in AppEnvironment.values) {
     testWidgets('OTP display in ${environment.name}', (tester) async {
       tester.view.physicalSize = const Size(320, 700);

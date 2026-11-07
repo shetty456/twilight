@@ -4,6 +4,7 @@ import 'package:ui/ui.dart';
 
 import '../../app.dart';
 import '../../config/providers.dart';
+import '../stories/story_playback.dart';
 import 'library_sections.dart';
 import 'listener_library.dart';
 
@@ -47,6 +48,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     if (!confirmed || !mounted) return;
     setState(() => _busy = true);
     try {
+      await ref.read(storyPlaybackProvider).stop();
       await ref.read(listenerLibraryProvider.notifier).clear();
       await ref.read(sessionProvider.notifier).signOut();
     } catch (_) {

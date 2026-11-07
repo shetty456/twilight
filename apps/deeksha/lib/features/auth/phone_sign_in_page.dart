@@ -25,6 +25,7 @@ class _PhoneSignInPageState extends ConsumerState<PhoneSignInPage> {
   bool _codeSent = false;
   bool _busy = false;
   String? _error;
+  String? _phoneValidationError;
   String? _developmentCode;
   String? _submittedPhone;
   String? _status;
@@ -76,12 +77,16 @@ class _PhoneSignInPageState extends ConsumerState<PhoneSignInPage> {
     if (_busy || (resend && _resendSeconds > 0)) return;
     final phone = resend ? _submittedPhone : _normalizedPhone;
     if (phone == null || !RegExp(r'^\+[1-9]\d{7,14}$').hasMatch(phone)) {
-      setState(() => _error = 'Enter a valid phone number with country code.');
+      setState(() {
+        _phoneValidationError = 'Enter a valid phone number with country code.';
+        _error = null;
+      });
       return;
     }
     setState(() {
       _busy = true;
       _error = null;
+      _phoneValidationError = null;
     });
     try {
       final code = await ref
@@ -141,6 +146,7 @@ class _PhoneSignInPageState extends ConsumerState<PhoneSignInPage> {
       _status = null;
       _code.clear();
       _error = null;
+      _phoneValidationError = null;
       _developmentCode = null;
     });
   }
@@ -225,12 +231,18 @@ class _PhoneSignInPageState extends ConsumerState<PhoneSignInPage> {
                   controller: _phone,
                   label: 'Phone number',
                   hint: '+91 98765 43210',
+                  errorText: _phoneValidationError,
                   keyboardType: TextInputType.phone,
                   autofillHints: const [AutofillHints.telephoneNumber],
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _sendCode(),
                   onChanged: (_) {
-                    if (_error != null) setState(() => _error = null);
+                    if (_error != null || _phoneValidationError != null) {
+                      setState(() {
+                        _error = null;
+                        _phoneValidationError = null;
+                      });
+                    }
                   },
                 )
               else
@@ -334,7 +346,7 @@ class _PhoneSignInPageState extends ConsumerState<PhoneSignInPage> {
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: active
-                                  ? VelaColors.action
+                                  ? VelaColors.ink
                                   : const Color(0xFF8A6C7E),
                               width: active ? 2 : 1,
                             ),

@@ -12,6 +12,7 @@ workspace:
   - packages/auth
   - packages/network
   - packages/ui
+  - packages/audio
   - packages/analytics
   - packages/ads
   - packages/storage
