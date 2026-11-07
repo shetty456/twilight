@@ -47,6 +47,7 @@ class SideScrollGame extends FlameGame {
   final List<_Offering> _offerings = [];
   ui.Image? _landscape;
   ui.Image? _devoteeSheet;
+  ui.Image? _devoteeSlide;
   ui.Image? _diya;
   ui.Image? _stone;
   ui.Image? _arch;
@@ -64,6 +65,7 @@ class SideScrollGame extends FlameGame {
   int _offeringSequence = 0;
 
   static const _runSeconds = 15.0;
+  static const _slideDuration = 1.3;
   static const _speed = 144.0;
   static const _groundY = 675.0;
 
@@ -72,6 +74,7 @@ class SideScrollGame extends FlameGame {
     await super.onLoad();
     _landscape = await images.load('side_valley_night.png');
     _devoteeSheet = await images.load('devotee_run_sheet.png');
+    _devoteeSlide = await images.load('devotee_side_slide.png');
     _diya = await images.load('diya_collectible.png');
     _stone = await images.load('temple_stone_low.png');
     _arch = await images.load('temple_arch_low.png');
@@ -94,7 +97,9 @@ class SideScrollGame extends FlameGame {
   }
 
   void slide() {
-    if (active && _slideTime <= 0 && _jumpTime <= 0) _slideTime = 0.72;
+    if (active && _slideTime <= 0 && _jumpTime <= 0) {
+      _slideTime = _slideDuration;
+    }
   }
 
   void pauseRun() {
@@ -305,6 +310,7 @@ class SideScrollGame extends FlameGame {
     const playerX = 108.0;
     final playerWorldX = elapsed * _speed;
     for (final obstacle in _obstacles) {
+      if (obstacle.kind == _Obstacle.arch) continue;
       final x = playerX + obstacle.x - playerWorldX;
       if (x < -90 || x > 470) continue;
       _paintObstacle(canvas, obstacle, x);
@@ -329,6 +335,12 @@ class SideScrollGame extends FlameGame {
     }
 
     _paintPlayer(canvas, playerX);
+    for (final obstacle in _obstacles) {
+      if (obstacle.kind != _Obstacle.arch) continue;
+      final x = playerX + obstacle.x - playerWorldX;
+      if (x < -150 || x > 540) continue;
+      _paintObstacle(canvas, obstacle, x);
+    }
     _paintForeground(canvas);
     final vignette = Paint()..shader = const RadialGradient(
       colors: [Color(0x00000000), Color(0x88080713)],
@@ -361,11 +373,12 @@ class SideScrollGame extends FlameGame {
 
   void _paintObstacle(Canvas canvas, _PlacedObstacle obstacle, double x) {
     final stone = obstacle.kind == _Obstacle.stone;
-    canvas.drawOval(Rect.fromCenter(center: Offset(x, _groundY + 3), width: 65, height: 13),
+    canvas.drawOval(Rect.fromCenter(center: Offset(x, _groundY + 3),
+        width: stone ? 65 : 240, height: 13),
         Paint()..color = const Color(0xAA08070C));
     _paintImage(canvas, stone ? _stone : _arch,
         stone ? Rect.fromLTWH(x - 35, _groundY - 53, 70, 54)
-              : Rect.fromLTWH(x - 43, _groundY - 132, 86, 132));
+              : Rect.fromLTWH(x - 125, _groundY - 170, 250, 170));
   }
 
   void _paintPlayer(Canvas canvas, double x) {
@@ -375,9 +388,27 @@ class SideScrollGame extends FlameGame {
     final stride = active ? math.sin(elapsed * 16) : 0.0;
     final bob = _jumpTime > 0 ? 0.0 : stride.abs() * 4;
     canvas.drawOval(Rect.fromCenter(center: Offset(x, _groundY + 3),
-        width: 58 - jump * 0.2, height: 14 - jump * 0.04),
+        width: _slideTime > 0 ? 135 : 58 - jump * 0.2,
+        height: 14 - jump * 0.04),
         Paint()..color = const Color(0x9907060C));
-    final height = _slideTime > 0 ? 102.0 : 160.0;
+    if (_slideTime > 0 && _devoteeSlide != null) {
+      final slide = _devoteeSlide!;
+      canvas.drawImageRect(
+        slide,
+        Rect.fromLTWH(0, 140, slide.width.toDouble(), 720),
+        Rect.fromLTWH(x - 84, _groundY - 86, 168, 86),
+        Paint()..filterQuality = FilterQuality.medium,
+      );
+      final dust = Paint()
+        ..color = const Color(0x99E8AA70)
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(Offset(x - 74, _groundY - 5),
+          Offset(x - 110, _groundY - 9), dust);
+      canvas.drawLine(Offset(x - 58, _groundY + 1),
+          Offset(x - 91, _groundY + 4), dust);
+      return;
+    }
     canvas.save();
     canvas.translate(x, _groundY + 27 - jump - bob);
     canvas.rotate(_jumpTime > 0 ? -0.10 : stride * 0.028);
@@ -391,7 +422,7 @@ class SideScrollGame extends FlameGame {
         sheet.height.toDouble(),
       );
       canvas.drawImageRect(sheet, source,
-          Rect.fromLTWH(-46, -height - 27, 92, height + 27),
+          const Rect.fromLTWH(-46, -187, 92, 187),
           Paint()..filterQuality = FilterQuality.medium);
     }
     canvas.restore();

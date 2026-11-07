@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:flame/game.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -88,163 +91,320 @@ class _RunnerPageState extends State<RunnerPage> {
     setState(() => playing = true);
   }
 
+  KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    final key = event.logicalKey;
+    if (!playing) {
+      if (key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.space) {
+        start();
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    }
+    final status = game.state.value.status;
+    if (key == LogicalKeyboardKey.escape || key == LogicalKeyboardKey.keyP) {
+      if (status == RunStatus.running) {
+        game.pauseRun();
+      } else if (status == RunStatus.paused) {
+        game.continueRun();
+      }
+      return KeyEventResult.handled;
+    }
+    if (status != RunStatus.running) {
+      if (key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.space) {
+        if (status == RunStatus.failed || status == RunStatus.complete) {
+          game.retry();
+        } else {
+          game.continueRun();
+        }
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    }
+    if (key == LogicalKeyboardKey.space ||
+        key == LogicalKeyboardKey.arrowUp ||
+        key == LogicalKeyboardKey.keyW) {
+      game.jump();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowDown || key == LogicalKeyboardKey.keyS) {
+      game.slide();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          GameWidget(game: game),
-          if (!playing) _Opening(onStart: start, savedLamps: widget.savedLamps),
-          if (playing) ...[
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onVerticalDragEnd: (details) {
-                final speed = details.primaryVelocity ?? 0;
-                if (speed < -80) game.jump();
-                if (speed > 80) game.slide();
-              },
-              onTap: game.jump,
+      backgroundColor: const Color(0xFF090B16),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final desktopPreview = kIsWeb && constraints.maxWidth > 600;
+          if (!desktopPreview) {
+            return Focus(
+              autofocus: true,
+              onKeyEvent: _handleKey,
+              child: _buildGameArea(),
+            );
+          }
+          final scale = math.min(
+            1.0,
+            math.min(
+              (constraints.maxWidth - 32) / 390,
+              (constraints.maxHeight - 32) / 844,
             ),
-            SafeArea(
-              child: AnimatedBuilder(
-                animation: game.state,
-                builder: (context, _) => Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          _Panel(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'NIGHT ${game.state.value.night}  /  9',
-                                  style: const TextStyle(
-                                    color: Color(0xFFEAB978),
-                                    fontSize: 12,
-                                    letterSpacing: 2,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  game.state.value.phase,
-                                  style: const TextStyle(
-                                    color: Color(0xFFFFF2DC),
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          _Panel(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  '${game.state.value.score} m',
-                                  style: const TextStyle(
-                                    color: Color(0xFFFFF2DC),
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                Text(
-                                  '✦ ${game.state.value.offerings} offerings',
-                                  style: const TextStyle(
-                                    color: Color(0xFFFFC777),
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          IconButton(
-                            onPressed:
-                                game.state.value.status == RunStatus.running
-                                ? game.pauseRun
-                                : null,
-                            icon: const Icon(
-                              Icons.pause_circle_outline_rounded,
-                            ),
-                            color: const Color(0xFFFFD69A),
-                            tooltip: 'Pause run',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      Row(
-                        children: List.generate(
-                          9,
-                          (i) => Padding(
-                            padding: const EdgeInsets.only(right: 7),
-                            child: Icon(
-                              i < game.state.value.lamps
-                                  ? Icons.local_fire_department_rounded
-                                  : Icons.circle_outlined,
-                              size: i < game.state.value.lamps ? 18 : 12,
-                              color: i < game.state.value.lamps
-                                  ? const Color(0xFFFFBD5D)
-                                  : const Color(0x88DDC6A6),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: LinearProgressIndicator(
-                          value: game.state.value.progress,
-                          minHeight: 5,
-                          backgroundColor: const Color(0xAA17131D),
-                          valueColor: const AlwaysStoppedAnimation(
-                            Color(0xFFFFC777),
-                          ),
-                        ),
-                      ),
-                    ],
+          );
+          return Center(
+            child: Container(
+              width: 390 * scale,
+              height: 844 * scale,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30 * scale),
+                border: Border.all(color: const Color(0xFF67516A), width: 2),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0xAA000000),
+                    blurRadius: 48,
+                    offset: Offset(0, 20),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28 * scale),
+                child: FittedBox(
+                  fit: BoxFit.fill,
+                  child: SizedBox(
+                    width: 390,
+                    height: 844,
+                    child: Focus(
+                      autofocus: true,
+                      onKeyEvent: _handleKey,
+                      child: _buildGameArea(),
+                    ),
                   ),
                 ),
               ),
             ),
-            AnimatedBuilder(
-              animation: game.state,
-              builder: (context, _) {
-                final status = game.state.value.status;
-                if (status == RunStatus.running) return const SizedBox.shrink();
-                return _EndPanel(
-                  status: status,
-                  lamps: game.state.value.lamps,
-                  onContinue: game.continueRun,
-                  onRetry: game.retry,
-                );
-              },
-            ),
-            Positioned(
-              bottom: 24,
-              left: 0,
-              right: 0,
-              child: IgnorePointer(
-                child: Text(
-                  'TAP OR SWIPE UP TO JUMP  •  SWIPE DOWN TO SLIDE',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.67),
-                    fontSize: 9,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
+          );
+        },
       ),
     );
   }
+
+  Widget _buildGameArea() {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        GameWidget(game: game),
+        if (!playing) _Opening(onStart: start, savedLamps: widget.savedLamps),
+        if (playing) ...[
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onVerticalDragEnd: (details) {
+              final speed = details.primaryVelocity ?? 0;
+              if (speed < -80) game.jump();
+              if (speed > 80) game.slide();
+            },
+            onTap: game.jump,
+          ),
+          SafeArea(
+            child: AnimatedBuilder(
+              animation: game.state,
+              builder: (context, _) => Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        _Panel(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'NIGHT ${game.state.value.night}  /  9',
+                                style: const TextStyle(
+                                  color: Color(0xFFEAB978),
+                                  fontSize: 12,
+                                  letterSpacing: 2,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                game.state.value.phase,
+                                style: const TextStyle(
+                                  color: Color(0xFFFFF2DC),
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(),
+                        _Panel(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '${game.state.value.score} m',
+                                style: const TextStyle(
+                                  color: Color(0xFFFFF2DC),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              Text(
+                                '✦ ${game.state.value.offerings} offerings',
+                                style: const TextStyle(
+                                  color: Color(0xFFFFC777),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed:
+                              game.state.value.status == RunStatus.running
+                                  ? game.pauseRun
+                                  : null,
+                          icon: const Icon(
+                            Icons.pause_circle_outline_rounded,
+                          ),
+                          color: const Color(0xFFFFD69A),
+                          tooltip: 'Pause run',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: List.generate(
+                        9,
+                        (i) => Padding(
+                          padding: const EdgeInsets.only(right: 7),
+                          child: Icon(
+                            i < game.state.value.lamps
+                                ? Icons.local_fire_department_rounded
+                                : Icons.circle_outlined,
+                            size: i < game.state.value.lamps ? 18 : 12,
+                            color: i < game.state.value.lamps
+                                ? const Color(0xFFFFBD5D)
+                                : const Color(0x88DDC6A6),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: game.state.value.progress,
+                        minHeight: 5,
+                        backgroundColor: const Color(0xAA17131D),
+                        valueColor: const AlwaysStoppedAnimation(
+                          Color(0xFFFFC777),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 24,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              top: false,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _GameControl(
+                    icon: Icons.keyboard_arrow_down_rounded,
+                    label: 'SLIDE',
+                    onPressed: game.slide,
+                  ),
+                  _GameControl(
+                    icon: Icons.keyboard_arrow_up_rounded,
+                    label: 'JUMP',
+                    onPressed: game.jump,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          AnimatedBuilder(
+            animation: game.state,
+            builder: (context, _) {
+              final status = game.state.value.status;
+              if (status == RunStatus.running) return const SizedBox.shrink();
+              return _EndPanel(
+                status: status,
+                lamps: game.state.value.lamps,
+                onContinue: game.continueRun,
+                onRetry: game.retry,
+              );
+            },
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _GameControl extends StatelessWidget {
+  const _GameControl({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: label,
+        child: Material(
+          color: const Color(0xD9221A2A),
+          borderRadius: BorderRadius.circular(18),
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              width: 116,
+              height: 64,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0x99F3C17B)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 28, color: const Color(0xFFFFD69A)),
+                  const SizedBox(width: 4),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Color(0xFFFFE8C8),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
 }
 
 class _Panel extends StatelessWidget {
