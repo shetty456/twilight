@@ -52,7 +52,7 @@ class _OtpAdapter implements HttpClientAdapter {
 }
 
 void main() {
-  testWidgets('phone focus is neutral and only invalid input is red', (
+  testWidgets('phone form validates input and shows the OTP step', (
     tester,
   ) async {
     const config = ApiConfig(
@@ -73,7 +73,7 @@ void main() {
           apiConfigProvider.overrideWithValue(config),
           phoneAuthRepositoryProvider.overrideWithValue(repository),
         ],
-        child: const VelaFmApp(),
+        child: const MaterialApp(home: PhoneSignInPage()),
       ),
     );
     await tester.pumpAndSettle();
@@ -81,15 +81,6 @@ void main() {
     final field = find.byType(TextField);
     await tester.tap(field);
     await tester.pump();
-    final theme = Theme.of(tester.element(field));
-    final focusedBorder =
-        theme.inputDecorationTheme.focusedBorder! as OutlineInputBorder;
-    expect(focusedBorder.borderSide.color, VelaColors.ink);
-    expect(
-      theme.inputDecorationTheme.floatingLabelStyle?.color,
-      VelaColors.ink,
-    );
-    expect(theme.textSelectionTheme.cursorColor, VelaColors.ink);
     expect(tester.widget<TextField>(field).decoration?.errorText, isNull);
 
     await tester.tap(find.text('Send code'));

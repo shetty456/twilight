@@ -58,6 +58,9 @@ void main() {
         access: 'old',
         refresh: 'old-refresh',
         phone: '+919876543210',
+        email: 'listener@example.com',
+        displayName: 'Deeksha Listener',
+        photoUrl: 'https://example.com/avatar.png',
       );
     var refreshes = 0;
     var protectedCalls = 0;
@@ -91,6 +94,9 @@ void main() {
     expect(refreshes, 1);
     expect((await store.read())?.refresh, 'new-refresh');
     expect((await store.read())?.phone, '+919876543210');
+    expect((await store.read())?.email, 'listener@example.com');
+    expect((await store.read())?.displayName, 'Deeksha Listener');
+    expect((await store.read())?.photoUrl, 'https://example.com/avatar.png');
   });
 
   test('invalid refresh clears the stored pair and does not loop', () async {

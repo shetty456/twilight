@@ -4,6 +4,7 @@ import 'package:ui/ui.dart';
 
 import '../../app.dart';
 import '../../config/providers.dart';
+import '../../data/origin_google_auth_repository.dart';
 import '../stories/story_playback.dart';
 import 'library_sections.dart';
 import 'listener_library.dart';
@@ -68,7 +69,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   Widget build(BuildContext context) {
     final libraryState = ref.watch(listenerLibraryProvider);
     final library = libraryState.valueOrNull;
-    final phoneState = ref.watch(signedInPhoneProvider);
+    final profileState = ref.watch(signedInProfileProvider);
     final savedCount = libraryState.isLoading || libraryState.hasError
         ? null
         : library?.saved.length ?? 0;
@@ -83,8 +84,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             _ProfileHeader(
               savedCount: savedCount,
               recentCount: recentCount,
-              phone: phoneState.valueOrNull,
-              phoneLoading: phoneState.isLoading,
+              profile: profileState.valueOrNull,
+              profileLoading: profileState.isLoading,
               libraryError: libraryState.hasError,
               completion: widget.profileCompletion,
             ),
@@ -128,103 +129,123 @@ class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader({
     required this.savedCount,
     required this.recentCount,
-    required this.phone,
-    required this.phoneLoading,
+    required this.profile,
+    required this.profileLoading,
     required this.libraryError,
     this.completion,
   });
 
   final int? savedCount;
   final int? recentCount;
-  final String? phone;
-  final bool phoneLoading;
+  final SignedInProfile? profile;
+  final bool profileLoading;
   final bool libraryError;
   final double? completion;
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-    decoration: BoxDecoration(
-      color: VelaColors.surface,
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Column(
-      children: [
-        const CircleAvatar(
-          radius: 46,
-          backgroundColor: VelaColors.blush,
-          child: Icon(
-            Icons.person_rounded,
-            color: VelaColors.apricot,
-            size: 52,
+  Widget build(BuildContext context) {
+    final name = profile?.displayName?.trim();
+    final photoUrl = profile?.photoUrl;
+    final hasPhoto =
+        photoUrl != null && Uri.tryParse(photoUrl)?.scheme == 'https';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+      decoration: BoxDecoration(
+        color: VelaColors.surface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 46,
+            backgroundColor: VelaColors.blush,
+            child: hasPhoto
+                ? ClipOval(
+                    child: Image.network(
+                      photoUrl,
+                      width: 92,
+                      height: 92,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.person_rounded,
+                        color: VelaColors.apricot,
+                        size: 52,
+                      ),
+                    ),
+                  )
+                : const Icon(
+                    Icons.person_rounded,
+                    color: VelaColors.apricot,
+                    size: 52,
+                  ),
           ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Your profile',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: VelaColors.ink,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: 4),
-        if (phoneLoading)
-          const AppSkeletonLines(width: 174)
-        else
+          const SizedBox(height: 12),
           Text(
-            phone ?? 'Phone number appears after your next sign-in',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: VelaColors.plum),
+            name == null || name.isEmpty ? 'Your profile' : name,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: VelaColors.ink,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-        const SizedBox(height: 20),
-        Row(
-          children: [
-            Expanded(
-              child: _ProfileStat(
-                count: savedCount,
-                label: 'Series saved',
-                unavailable: libraryError,
-              ),
+          const SizedBox(height: 4),
+          if (profileLoading)
+            const AppSkeletonLines(width: 174)
+          else
+            Text(
+              profile?.email ?? profile?.phone ?? 'Your account',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: VelaColors.plum),
             ),
-            Container(width: 1, height: 40, color: VelaColors.blush),
-            Expanded(
-              child: _ProfileStat(
-                count: recentCount,
-                label: 'Recent listens',
-                unavailable: libraryError,
-              ),
-            ),
-          ],
-        ),
-        if (completion != null) ...[
-          const Divider(height: 36, color: VelaColors.blush),
+          const SizedBox(height: 20),
           Row(
             children: [
-              const Expanded(
-                child: Text(
-                  'Profile completion',
-                  style: TextStyle(color: VelaColors.ink),
+              Expanded(
+                child: _ProfileStat(
+                  count: savedCount,
+                  label: 'Series saved',
+                  unavailable: libraryError,
                 ),
               ),
-              Text(
-                '${(completion! * 100).round()}%',
-                style: const TextStyle(color: VelaColors.plum),
+              Container(width: 1, height: 40, color: VelaColors.blush),
+              Expanded(
+                child: _ProfileStat(
+                  count: recentCount,
+                  label: 'Recent listens',
+                  unavailable: libraryError,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          LinearProgressIndicator(
-            value: completion,
-            minHeight: 5,
-            borderRadius: BorderRadius.circular(3),
-            backgroundColor: VelaColors.blush,
-            color: VelaColors.apricot,
-          ),
+          if (completion != null) ...[
+            const Divider(height: 36, color: VelaColors.blush),
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Profile completion',
+                    style: TextStyle(color: VelaColors.ink),
+                  ),
+                ),
+                Text(
+                  '${(completion! * 100).round()}%',
+                  style: const TextStyle(color: VelaColors.plum),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            LinearProgressIndicator(
+              value: completion,
+              minHeight: 5,
+              borderRadius: BorderRadius.circular(3),
+              backgroundColor: VelaColors.blush,
+              color: VelaColors.apricot,
+            ),
+          ],
         ],
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 class _ProfileStat extends StatelessWidget {

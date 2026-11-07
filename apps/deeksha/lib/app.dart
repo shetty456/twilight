@@ -5,7 +5,9 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:ui/ui.dart';
 
 import 'config/providers.dart';
+import 'features/auth/google_sign_in_page.dart';
 import 'features/auth/phone_sign_in_page.dart';
+import 'config/product_config.dart';
 import 'features/listener/listener_shell.dart';
 
 abstract final class VelaColors {
@@ -38,8 +40,8 @@ abstract final class VelaSystemUi {
   );
 }
 
-class VelaFmApp extends ConsumerWidget {
-  const VelaFmApp({super.key});
+class DeekshaApp extends ConsumerWidget {
+  const DeekshaApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -181,8 +183,11 @@ class _AuthGate extends ConsumerWidget {
     return ref
         .watch(sessionProvider)
         .when(
-          data: (signedIn) =>
-              signedIn ? const ListenerShell() : const PhoneSignInPage(),
+          data: (signedIn) => signedIn
+              ? const ListenerShell()
+              : ProductConfig.googleAuthEnabled
+              ? const GoogleSignInPage()
+              : const PhoneSignInPage(),
           loading: () => const ListenerShellLoading(),
           error: (_, __) => Scaffold(
             body: SafeArea(

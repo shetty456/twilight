@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:deeksha/config/providers.dart';
+import 'package:deeksha/data/origin_google_auth_repository.dart';
 import 'package:deeksha/features/listener/listener_library.dart';
 import 'package:deeksha/features/listener/listener_shell.dart';
 import 'package:deeksha/features/listener/profile_page.dart';
@@ -96,7 +97,9 @@ void main() {
           listenerLibraryProvider.overrideWith(
             (ref) => ListenerLibraryController(storage.future),
           ),
-          signedInPhoneProvider.overrideWith((ref) async => '+919876543210'),
+          signedInProfileProvider.overrideWith(
+            (ref) async => const SignedInProfile(email: 'listener@example.com'),
+          ),
         ],
         child: MaterialApp(home: ProfilePage(onExplore: () {})),
       ),

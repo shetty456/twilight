@@ -97,6 +97,9 @@ class JwtRefreshInterceptor extends Interceptor {
         access: data['access'] as String,
         refresh: data['refresh'] as String,
         phone: previous.phone,
+        email: previous.email,
+        displayName: previous.displayName,
+        photoUrl: previous.photoUrl,
       );
       await _tokens.write(rotated);
       return rotated;

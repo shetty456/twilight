@@ -9,7 +9,7 @@ import 'config/providers.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await BackgroundAudioQueue.initialize(
-    notificationChannelId: 'com.twilight.velafm.audio',
+    notificationChannelId: 'com.twilight.deeksha.audio',
     notificationChannelName: 'Story playback',
   );
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -17,7 +17,7 @@ Future<void> main() async {
   runApp(
     ProviderScope(
       overrides: buildProviderOverrides(),
-      child: const VelaFmApp(),
+      child: const DeekshaApp(),
     ),
   );
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:storage/storage.dart';
 import 'package:deeksha/config/providers.dart';
+import 'package:deeksha/data/origin_google_auth_repository.dart';
 import 'package:deeksha/features/listener/listener_library.dart';
 import 'package:deeksha/features/listener/listener_shell.dart';
 import 'package:deeksha/stories/models/story_models.dart';
@@ -48,7 +49,12 @@ void main() {
             ],
           ),
           listenerLibraryProvider.overrideWith((ref) => libraryController),
-          signedInPhoneProvider.overrideWith((ref) async => '+919876543210'),
+          signedInProfileProvider.overrideWith(
+            (ref) async => const SignedInProfile(
+              email: 'listener@example.com',
+              displayName: 'Deeksha Listener',
+            ),
+          ),
         ],
         child: const MaterialApp(home: ListenerShell()),
       ),
@@ -66,8 +72,8 @@ void main() {
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.text('Your profile'), findsOneWidget);
-    expect(find.text('+919876543210'), findsOneWidget);
+    expect(find.text('Deeksha Listener'), findsOneWidget);
+    expect(find.text('listener@example.com'), findsOneWidget);
     expect(find.text('Saved stories'), findsOneWidget);
     expect(tester.widget<CircleAvatar>(find.byType(CircleAvatar)).radius, 46);
     expect(find.text('Profile completion'), findsNothing);

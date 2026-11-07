@@ -16,6 +16,7 @@ dependencies:
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
   skeletonizer: ^3.0.0
+  flutter_svg: ^2.0.10+1
   core:
     path: ../../packages/core
   auth:
@@ -39,3 +40,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/branding/deeksha-app-icon-master.png
+    - assets/icons/google.svg

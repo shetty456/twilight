@@ -23,6 +23,9 @@ class SecureAuthTokenStore implements AuthTokenStore {
         access: value['access'] as String,
         refresh: value['refresh'] as String,
         phone: value['phone'] as String?,
+        email: value['email'] as String?,
+        displayName: value['displayName'] as String?,
+        photoUrl: value['photoUrl'] as String?,
       );
     } on FormatException {
       await clear();
@@ -40,6 +43,9 @@ class SecureAuthTokenStore implements AuthTokenStore {
           'access': tokens.access,
           'refresh': tokens.refresh,
           if (tokens.phone != null) 'phone': tokens.phone,
+          if (tokens.email != null) 'email': tokens.email,
+          if (tokens.displayName != null) 'displayName': tokens.displayName,
+          if (tokens.photoUrl != null) 'photoUrl': tokens.photoUrl,
         }),
       );
 

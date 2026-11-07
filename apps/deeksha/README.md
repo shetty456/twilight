@@ -1,9 +1,8 @@
 # Deeksha MVP
 
 Deeksha is the display name for the pregnancy-focused story app. The name shown
-inside Flutter is configurable with `DEEKSHA_APP_NAME` (the former
-`VELA_FM_APP_NAME` override still works). The app package name and bundle IDs
-remain independent of the visible brand.
+inside Flutter is configurable with `DEEKSHA_APP_NAME`. The Android package name
+and iOS bundle ID are `com.twilight.deeksha`.
 
 ## Run against Origin
 
