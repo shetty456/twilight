@@ -1,18 +1,17 @@
-# Deeksha MVP
+# Deeksha
 
 Deeksha is the display name for the pregnancy-focused story app. The name shown
 inside Flutter is configurable with `DEEKSHA_APP_NAME`. The Android package name
 and iOS bundle ID are `com.twilight.deeksha`.
 
-## Run against Origin
+## Run the app
 
 The app uses the shared testing backend at
 `https://origin-production-5ab8.up.railway.app/api/v1/` by default.
 The backend must be reachable from the device.
 
 ```sh
-fvm flutter run -d <device-id> \
-  --dart-define='DEEKSHA_APP_NAME=Deeksha'
+fvm flutter run -d <device-id>
 ```
 
 To use another backend, pass `--dart-define=API_BASE_URL=https://<host>/api/v1/`.
@@ -21,13 +20,25 @@ physical phone, use your computer's LAN IP and run Origin bound to
 `0.0.0.0:8000`. Pass `APP_ENV=production` for production builds; those builds
 require an HTTPS API URL.
 
+Google sign-in is the default logged-out screen. The app obtains a Google ID
+token and exchanges it for an Origin JWT session. The default Google web/server
+client ID is configured in `lib/config/product_config.dart`; when using a
+different backend, pass its client ID with
+`--dart-define=GOOGLE_SERVER_CLIENT_ID=<web-client-id>`. Android OAuth setup
+also needs an OAuth client for `com.twilight.deeksha` and the signing
+certificate SHA-1 for the build being tested. See
+[Google sign-in integration](docs/google-sign-in.md) for the full Android, iOS,
+and backend setup.
+
+The phone and OTP screens remain in the code for future use. To show them for
+testing, run with `--dart-define=DEEKSHA_GOOGLE_AUTH_ENABLED=false`.
+
 ## Backend contract
 
-- `POST auth/otp/phone/request/` with `{"phone":"+919876543210"}`
-  returns `{"detail":"OTP sent."}`. For development testing, the backend can
-  also return `dev_otp`; the app shows that code on the verification screen when
-  `APP_ENV=development`.
-- `POST auth/otp/phone/verify/` with `{"phone":"+919876543210","otp":"3821"}`
+- `POST auth/google/token/` with `{"id_token":"<Google ID token>"}` returns
+  `{"access":"<JWT>","refresh":"<JWT>"}`. Origin verifies the Google token
+  against its configured web/server client ID.
+- `POST auth/jwt/refresh/` refreshes the Origin access token.
 - `GET stories/series/`
 - Series include a `thumbnail` storage key and may include a signed HTTP(S)
   `thumbnail_url`. They may also set `is_featured` to choose the Home spotlight.
@@ -48,13 +59,10 @@ resumes from its local position. Sign-out clears this local library because
 the backend does not yet expose account-scoped saved stories or a progress-read
 endpoint.
 
-All story requests require the JWT from OTP verification. The app stores the
-token pair in platform secure storage and refreshes it through
-`auth/jwt/refresh/`.
+Story requests use the Origin JWT obtained from Google sign-in. The app stores
+the Origin token pair and Google profile details in platform secure storage.
+The phone and OTP fallback uses `auth/otp/phone/request/` and
+`auth/otp/phone/verify/` to obtain the same kind of Origin session.
 
-Origin's development sample stories contain text but no playable audio. The
-app presents those as reading episodes. Real audio playback requires a real
-episode with an `audio_key` and a reachable object-storage URL.
-
-Origin has no SMS delivery integration yet. The hosted backend must enable its
-temporary OTP response setting for testers to see the code in Deeksha.
+Episodes without an `audio_key` open as reading episodes. Audio playback
+requires an `audio_key` and a reachable media URL from Origin.
