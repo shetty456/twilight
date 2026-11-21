@@ -1,8 +1,11 @@
 FLUTTER := fvm flutter
 DART    := fvm dart
 API_BASE_URL ?= https://origin-production-5ab8.up.railway.app/api/v1/
+APP ?= template
+APP_DIR := apps/$(APP)
+AVAILABLE_APPS := $(patsubst apps/%/pubspec.yaml,%,$(wildcard apps/*/pubspec.yaml))
 
-.PHONY: help setup get analyze format test clean gen run-template build-apk build-aab
+.PHONY: help setup get analyze format format-check test clean gen check-app run run-template build-apk build-apk-debug build-aab build-ipa
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -33,17 +36,23 @@ clean: ## Clean all build artifacts
 gen: ## Run code generation (Freezed, json_serializable)
 	$(DART) run build_runner build --delete-conflicting-outputs
 
-run-template: ## Run template against the testing backend (override API_BASE_URL as needed)
-	cd apps/template && $(FLUTTER) run --dart-define=APP_ENV=development --dart-define=API_BASE_URL="$(API_BASE_URL)"
+check-app:
+	@test -f "$(APP_DIR)/pubspec.yaml" || { echo "Unknown app '$(APP)'. Available: $(AVAILABLE_APPS)" >&2; exit 1; }
 
-build-apk: ## Build release APK for template app
-	cd apps/template && $(FLUTTER) build apk --release --dart-define=APP_ENV=production --dart-define=API_BASE_URL="$(API_BASE_URL)"
+run: check-app ## Run selected app against the testing backend (APP=template by default)
+	cd "$(APP_DIR)" && $(FLUTTER) run --dart-define=APP_ENV=development --dart-define=API_BASE_URL="$(API_BASE_URL)"
 
-build-apk-debug: ## Build debug APK for template app
-	cd apps/template && $(FLUTTER) build apk --debug --dart-define=APP_ENV=development --dart-define=API_BASE_URL="$(API_BASE_URL)"
+run-template: ## Run template app (alias for make run APP=template)
+	$(MAKE) run APP=template API_BASE_URL="$(API_BASE_URL)"
 
-build-aab: ## Build release AAB (Play Store) for template app
-	cd apps/template && $(FLUTTER) build appbundle --release --dart-define=APP_ENV=production --dart-define=API_BASE_URL="$(API_BASE_URL)"
+build-apk: check-app ## Build release APK for selected app
+	cd "$(APP_DIR)" && $(FLUTTER) build apk --release --dart-define=APP_ENV=production --dart-define=API_BASE_URL="$(API_BASE_URL)"
 
-build-ipa: ## Build iOS release archive for template app
-	cd apps/template && $(FLUTTER) build ipa --release --dart-define=APP_ENV=production --dart-define=API_BASE_URL="$(API_BASE_URL)"
+build-apk-debug: check-app ## Build debug APK for selected app
+	cd "$(APP_DIR)" && $(FLUTTER) build apk --debug --dart-define=APP_ENV=development --dart-define=API_BASE_URL="$(API_BASE_URL)"
+
+build-aab: check-app ## Build release AAB (Play Store) for selected app
+	cd "$(APP_DIR)" && $(FLUTTER) build appbundle --release --dart-define=APP_ENV=production --dart-define=API_BASE_URL="$(API_BASE_URL)"
+
+build-ipa: check-app ## Build iOS release archive for selected app
+	cd "$(APP_DIR)" && $(FLUTTER) build ipa --release --dart-define=APP_ENV=production --dart-define=API_BASE_URL="$(API_BASE_URL)"

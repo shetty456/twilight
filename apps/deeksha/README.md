@@ -66,3 +66,19 @@ The phone and OTP fallback uses `auth/otp/phone/request/` and
 
 Episodes without an `audio_key` open as reading episodes. Audio playback
 requires an `audio_key` and a reachable media URL from Origin.
+
+## Android release signing
+
+Google Play needs a release AAB signed with a private upload key. Put the
+keystore at `android/upload-keystore.jks`, copy
+`android/key.properties.example` to `android/key.properties`, and replace the
+placeholder passwords with the keystore's values. Both private files are
+ignored by Git. Back up the keystore and passwords securely; future updates
+must use the same upload key unless it is reset in Play Console.
+
+From the repository root, run `make build-aab APP=deeksha` after configuring
+the key. The bundle is written to
+`apps/deeksha/build/app/outputs/bundle/release/app-release.aab`. Google Play
+re-signs installs with its app signing certificate, so register that
+certificate's SHA-1 for `com.twilight.deeksha` in the Android Google OAuth
+client before testing Google sign-in through Play.

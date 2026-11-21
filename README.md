@@ -126,11 +126,16 @@ make analyze        # Static analysis
 make format         # Format all Dart code
 make test           # Run all tests
 make clean          # Clean build artifacts
-make run-template
-make build-apk API_BASE_URL=https://<production-host>/api/v1/
-make build-aab API_BASE_URL=https://<production-host>/api/v1/
-make build-ipa API_BASE_URL=https://<production-host>/api/v1/
+make run APP=deeksha
+make build-apk-debug APP=deeksha
+make build-apk APP=deeksha API_BASE_URL=https://<production-host>/api/v1/
+make build-aab APP=deeksha API_BASE_URL=https://<production-host>/api/v1/
+make build-ipa APP=deeksha API_BASE_URL=https://<production-host>/api/v1/
 ```
+
+Use `APP=template`, `APP=deeksha`, or `APP=nine_lamps`. Omitting `APP` keeps the
+template as the default. Build artifacts are written under the selected app's
+`build/` directory.
 
 Or run the underlying commands directly:
 

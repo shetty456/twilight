@@ -1,8 +1,33 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+val releaseSigningFile = rootProject.file("key.properties")
+val releaseSigning = Properties()
+if (releaseSigningFile.isFile) {
+    releaseSigningFile.inputStream().use { releaseSigning.load(it) }
+}
+
+val releaseBuildRequested = gradle.startParameter.taskNames.any {
+    it.substringAfterLast(':').contains("Release", ignoreCase = true)
+}
+if (releaseBuildRequested) {
+    check(releaseSigningFile.isFile) {
+        "Release signing requires android/key.properties. See android/key.properties.example."
+    }
+    listOf("storeFile", "storePassword", "keyAlias", "keyPassword").forEach { key ->
+        check(!releaseSigning.getProperty(key).isNullOrBlank()) {
+            "Missing '$key' in android/key.properties."
+        }
+    }
+    check(rootProject.file(releaseSigning.getProperty("storeFile")).isFile) {
+        "Release signing keystore does not exist: ${releaseSigning.getProperty("storeFile")}"
+    }
 }
 
 android {
@@ -30,11 +55,20 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            if (releaseSigningFile.isFile) {
+                storeFile = rootProject.file(releaseSigning.getProperty("storeFile"))
+                storePassword = releaseSigning.getProperty("storePassword")
+                keyAlias = releaseSigning.getProperty("keyAlias")
+                keyPassword = releaseSigning.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
